@@ -1,8 +1,14 @@
 package header
 
 import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/aws/aws-sdk-go-v2/config"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/jacobscunn07/duchess/internal/charmbracelet/bubbletea/messages/aws/sts"
 	"github.com/jacobscunn07/duchess/internal/messages"
 	"github.com/jacobscunn07/duchess/internal/style"
 )
@@ -17,10 +23,22 @@ type Model struct {
 	style           lipgloss.Style
 	availableWidth  int
 	availableHeight int
+	accountId       string
+	region          string
+	principal       string
 }
 
 func (m Model) Init() tea.Cmd {
-	return nil
+	cfg, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		log.Fatalf("unable to load SDK config, %v", err)
+	}
+
+	api := sts.NewGetCallerIdentityAPI(cfg)
+
+	return tea.Batch(
+		sts.GetCallerIdentity(context.TODO(), api),
+	)
 }
 
 func (m Model) Update(msg interface{}) (Model, tea.Cmd) {
@@ -28,6 +46,10 @@ func (m Model) Update(msg interface{}) (Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case messages.AvailableWindowSizeMsg:
 		m.updateAvailableWindowSize(msg.Width, msg.Height)
+	case sts.GetCallerIdentityMessage:
+		m.accountId = msg.AccountId
+		m.principal = msg.Arn
+		m.region = msg.Region
 	}
 
 	return m, tea.Batch(cmds...)
@@ -37,7 +59,9 @@ func (m Model) View() string {
 	return m.style.Render(
 		lipgloss.JoinVertical(
 			lipgloss.Left,
-			"account id: 0123456789",
+			fmt.Sprintf("region: %s", m.region),
+			fmt.Sprintf("account id: %s", m.accountId),
+			fmt.Sprintf("principal: %s", m.principal),
 		),
 	)
 }

@@ -23,11 +23,12 @@ type Model struct {
 }
 
 func (m Model) Init() tea.Cmd {
-	return nil
+	return tea.Batch(m.header.Init())
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
+	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -37,10 +38,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		w, h := m.updateAvailableWindowSize(msg.Width, msg.Height)
 
-		m.header, _ = m.header.Update(messages.AvailableWindowSizeMsg{
+		m.header, cmd = m.header.Update(messages.AvailableWindowSizeMsg{
 			Height: h,
 			Width:  w,
 		})
+		cmds = append(cmds, cmd)
+	default:
+		m.header, cmd = m.header.Update(msg)
+		cmds = append(cmds, cmd)
 	}
 
 	return m, tea.Batch(cmds...)
