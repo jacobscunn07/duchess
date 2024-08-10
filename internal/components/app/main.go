@@ -3,6 +3,7 @@ package app
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/jacobscunn07/duchess/internal/components/content"
 	"github.com/jacobscunn07/duchess/internal/components/header"
 	"github.com/jacobscunn07/duchess/internal/messages"
 	"github.com/jacobscunn07/duchess/internal/style"
@@ -10,8 +11,9 @@ import (
 
 func New() *Model {
 	return &Model{
-		style:  style.Border,
-		header: header.New(),
+		style:   style.Border,
+		header:  header.New(),
+		content: content.New(),
 	}
 }
 
@@ -20,6 +22,7 @@ type Model struct {
 	availableHeight int
 	availableWidth  int
 	header          header.Model
+	content         content.Model
 }
 
 func (m Model) Init() tea.Cmd {
@@ -43,8 +46,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			Width:  w,
 		})
 		cmds = append(cmds, cmd)
+
+		m.content, cmd = m.content.Update(messages.AvailableWindowSizeMsg{
+			Height: h - m.header.ViewHeight(),
+			Width:  w,
+		})
+		cmds = append(cmds, cmd)
 	default:
 		m.header, cmd = m.header.Update(msg)
+		cmds = append(cmds, cmd)
+
+		m.content, cmd = m.content.Update(msg)
 		cmds = append(cmds, cmd)
 	}
 
@@ -56,12 +68,13 @@ func (m Model) View() string {
 		lipgloss.JoinVertical(
 			lipgloss.Left,
 			m.header.View(),
+			m.content.View(),
 		),
 	)
 }
 
 func (m Model) ViewHeight() int {
-	return len(m.View())
+	return lipgloss.Height(m.View())
 }
 
 func (m *Model) updateAvailableWindowSize(w, h int) (int, int) {
@@ -73,5 +86,5 @@ func (m *Model) updateAvailableWindowSize(w, h int) (int, int) {
 		Height(m.availableHeight).
 		Width(m.availableWidth)
 
-	return m.availableWidth, m.availableWidth
+	return m.availableWidth, m.availableHeight
 }
