@@ -26,7 +26,10 @@ type Model struct {
 }
 
 func (m Model) Init() tea.Cmd {
-	return tea.Batch(m.header.Init())
+	return tea.Batch(
+		m.header.Init(),
+		m.content.Init(),
+	)
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
