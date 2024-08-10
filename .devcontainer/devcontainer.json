@@ -9,7 +9,11 @@
 	// "features": {},
 
 	"features": {
-		"ghcr.io/devcontainers/features/aws-cli:1": {}
+		"ghcr.io/devcontainers/features/aws-cli:1": {},
+		"./features/starship": {
+			"preset": "gruvbox-rainbow",
+			"version": "v1.20.1"
+		}
 	},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.

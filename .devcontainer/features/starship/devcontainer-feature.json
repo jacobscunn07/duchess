@@ -1,0 +1,24 @@
+{
+    "name": "Starship Prompt",
+    "id": "starship",
+    "version": "0.0.1",
+    "description": "A feature to install starship prompt.",
+    "options": {
+        "preset": {
+            "type": "string",
+            "enum": [
+                "gruvbox-rainbow",
+                "pastel-powerline",
+                "tokyo-night"
+            ],
+            "description": "Choose your preset."
+        },
+        "version": {
+            "type": "string",
+            "description": "The version of starship to install."
+        }
+    },
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ]
+}
