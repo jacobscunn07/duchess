@@ -1,7 +1,18 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/jacobscunn07/duchess/internal/components/app"
+)
 
 func main() {
-	fmt.Println("hello from duchess!")
+	duchess := app.New()
+
+	if _, err := tea.NewProgram(duchess, tea.WithAltScreen()).Run(); err != nil {
+		fmt.Println("Error running program:", err)
+		os.Exit(1)
+	}
 }
