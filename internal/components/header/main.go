@@ -1,46 +1,33 @@
-package app
+package header
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/jacobscunn07/duchess/internal/components/header"
 	"github.com/jacobscunn07/duchess/internal/messages"
 	"github.com/jacobscunn07/duchess/internal/style"
 )
 
-func New() *Model {
-	return &Model{
-		style:  style.Border,
-		header: header.New(),
+func New() Model {
+	return Model{
+		style: style.Border,
 	}
 }
 
 type Model struct {
 	style           lipgloss.Style
-	availableHeight int
 	availableWidth  int
-	header          header.Model
+	availableHeight int
 }
 
 func (m Model) Init() tea.Cmd {
 	return nil
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) Update(msg interface{}) (Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "q", "ctrl+c", "esc":
-			return m, tea.Quit
-		}
-	case tea.WindowSizeMsg:
-		w, h := m.updateAvailableWindowSize(msg.Width, msg.Height)
-
-		m.header, _ = m.header.Update(messages.AvailableWindowSizeMsg{
-			Height: h,
-			Width:  w,
-		})
+	case messages.AvailableWindowSizeMsg:
+		m.updateAvailableWindowSize(msg.Width, msg.Height)
 	}
 
 	return m, tea.Batch(cmds...)
@@ -50,7 +37,7 @@ func (m Model) View() string {
 	return m.style.Render(
 		lipgloss.JoinVertical(
 			lipgloss.Left,
-			m.header.View(),
+			"account id: 0123456789",
 		),
 	)
 }
@@ -65,7 +52,6 @@ func (m *Model) updateAvailableWindowSize(w, h int) (int, int) {
 	m.availableWidth, m.availableHeight = w-frameW, h-frameH
 
 	m.style = m.style.
-		Height(m.availableHeight).
 		Width(m.availableWidth)
 
 	return m.availableWidth, m.availableWidth
