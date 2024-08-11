@@ -8,9 +8,10 @@ const (
 )
 
 var (
-	Base   = lipgloss.NewStyle()
-	Bold   = Base.Bold(true)
-	Border = Base.
-		Border(lipgloss.NormalBorder(), true).
-		BorderForeground(Green)
+	Base        = lipgloss.NewStyle()
+	Bold        = Base.Bold(true)
+	BoldPrimary = Bold.Foreground(Green)
+	Border      = Base.
+			Border(lipgloss.NormalBorder(), true).
+			BorderForeground(Green)
 )

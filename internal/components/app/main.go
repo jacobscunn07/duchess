@@ -55,13 +55,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			Width:  w,
 		})
 		cmds = append(cmds, cmd)
-	default:
-		m.header, cmd = m.header.Update(msg)
-		cmds = append(cmds, cmd)
-
-		m.content, cmd = m.content.Update(msg)
-		cmds = append(cmds, cmd)
 	}
+
+	m.header, cmd = m.header.Update(msg)
+	cmds = append(cmds, cmd)
+
+	m.content, cmd = m.content.Update(msg)
+	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
 }
