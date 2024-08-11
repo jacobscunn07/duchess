@@ -18,9 +18,8 @@ import (
 
 func New() Model {
 	return Model{
-		style:   style.Border,
-		buckets: []string{},
-		list:    NewList(),
+		style: style.Border,
+		list:  NewList(),
 	}
 }
 
@@ -28,7 +27,6 @@ type Model struct {
 	style           lipgloss.Style
 	availableWidth  int
 	availableHeight int
-	buckets         []string
 	list            list.Model
 	choice          string
 	quitting        bool
