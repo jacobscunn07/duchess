@@ -3,6 +3,7 @@ package app
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/jacobscunn07/duchess/internal/components"
 	"github.com/jacobscunn07/duchess/internal/components/content"
 	"github.com/jacobscunn07/duchess/internal/components/header"
 	"github.com/jacobscunn07/duchess/internal/messages"
@@ -21,8 +22,8 @@ type Model struct {
 	style           lipgloss.Style
 	availableHeight int
 	availableWidth  int
-	header          header.Model
-	content         content.Model
+	header          components.Model
+	content         components.Model
 }
 
 func (m Model) Init() tea.Cmd {
