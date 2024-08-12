@@ -12,11 +12,12 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/jacobscunn07/duchess/internal/charmbracelet/bubbletea/messages/aws/s3"
+	"github.com/jacobscunn07/duchess/internal/components"
 	"github.com/jacobscunn07/duchess/internal/messages"
 	"github.com/jacobscunn07/duchess/internal/style"
 )
 
-func New() Model {
+func New() components.Model {
 	return Model{
 		style: style.Border,
 		list:  NewList(),
@@ -45,7 +46,7 @@ func (m Model) Init() tea.Cmd {
 	)
 }
 
-func (m Model) Update(msg interface{}) (Model, tea.Cmd) {
+func (m Model) Update(msg interface{}) (components.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case messages.AvailableWindowSizeMsg:
