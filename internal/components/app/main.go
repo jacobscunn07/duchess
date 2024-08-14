@@ -4,7 +4,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/jacobscunn07/duchess/internal/components"
-	"github.com/jacobscunn07/duchess/internal/components/content"
+	"github.com/jacobscunn07/duchess/internal/components/aws/s3"
 	"github.com/jacobscunn07/duchess/internal/components/header"
 	"github.com/jacobscunn07/duchess/internal/messages"
 	"github.com/jacobscunn07/duchess/internal/style"
@@ -14,7 +14,7 @@ func New() *Model {
 	return &Model{
 		style:   style.Border,
 		header:  header.New(),
-		content: content.New(),
+		content: s3.NewListBucketModel(),
 	}
 }
 
