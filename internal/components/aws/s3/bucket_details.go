@@ -2,11 +2,14 @@ package s3
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"log"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/jacobscunn07/duchess/internal/bubbles"
@@ -15,6 +18,7 @@ import (
 	"github.com/jacobscunn07/duchess/internal/messages"
 	"github.com/jacobscunn07/duchess/internal/style"
 
+	s3_sdk "github.com/aws/aws-sdk-go-v2/service/s3"
 	s3_data "github.com/jacobscunn07/duchess/internal/data/s3"
 )
 
@@ -66,11 +70,14 @@ func BucketDetailsModelWithWidth(width int) func(m *BucketDetailsModel) {
 type BucketDetailsModel struct {
 	bucket          string
 	objects         []string
+	selectedObject  string
 	list            list.Model
 	availableWidth  int
 	availableHeight int
 	style           lipgloss.Style
 	tabs            string
+	tabContent      string
+	viewport        viewport.Model
 }
 
 func (m BucketDetailsModel) Init() tea.Cmd {
@@ -90,6 +97,24 @@ func (m BucketDetailsModel) Update(msg interface{}) (components.Model, tea.Cmd) 
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 
+	case tea.KeyMsg:
+		switch keypress := msg.String(); keypress {
+		case "enter":
+			if i, ok := m.list.SelectedItem().(bubbles.ListDefaultItem); ok {
+				m.selectedObject = string(i)
+				cfg, err := config.LoadDefaultConfig(context.TODO())
+				if err != nil {
+					log.Fatalf("unable to load SDK config, %v", err)
+				}
+
+				client := s3_sdk.NewFromConfig(cfg)
+
+				api := s3_data.NewApi(client)
+				cmd := s3.GetObjectQuery(context.TODO(), *api, m.bucket, m.selectedObject)
+				cmds = append(cmds, cmd)
+			}
+		}
+
 	case messages.AvailableWindowSizeMsg:
 		m.updateAvailableWindowSize(msg.Width, msg.Height)
 
@@ -105,19 +130,44 @@ func (m BucketDetailsModel) Update(msg interface{}) (components.Model, tea.Cmd) 
 		}
 
 		m.list.SetItems(objects)
+	case s3.GetObjectQueryMessage:
+		defer msg.Contents.Close()
+
+		tabContent, _ := io.ReadAll(msg.Contents)
+
+		m.tabContent = string(tabContent)
+		// m.viewport.SetContent(m.tabContent)
+
+		m.viewport = viewport.New(80, 5)
+		m.viewport.YPosition = lipgloss.Height(m.headerView())
+		m.viewport.HighPerformanceRendering = false
+		m.viewport.SetContent(m.tabContent)
+		// m.ready = true
 	}
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
+	cmds = append(cmds, cmd)
+
+	m.viewport, cmd = m.viewport.Update(msg)
 	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
 }
 
 func (m BucketDetailsModel) View() string {
+	var contents string
+
+	if m.tabContent == "" {
+		contents = m.list.View()
+	} else {
+		// contents = m.tabContent
+		contents = fmt.Sprintf("%s\n%s\n%s", m.headerView(), m.viewport.View(), m.footerView())
+	}
+
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
 		m.tabs,
-		m.list.View(),
+		contents,
 	)
 }
 
@@ -135,6 +185,17 @@ func (m *BucketDetailsModel) updateAvailableWindowSize(w, h int) (int, int) {
 		Width(m.availableWidth)
 
 	return m.availableWidth, m.availableHeight
+}
+func (m BucketDetailsModel) headerView() string {
+	title := viewPortTitleStyle.Render("Mr. Pager")
+	line := strings.Repeat("─", max(0, m.viewport.Width-lipgloss.Width(title)))
+	return lipgloss.JoinHorizontal(lipgloss.Center, title, line)
+}
+
+func (m BucketDetailsModel) footerView() string {
+	info := viewPortInfoStyle.Render(fmt.Sprintf("%3.f%%", m.viewport.ScrollPercent()*100))
+	line := strings.Repeat("─", max(0, m.viewport.Width-lipgloss.Width(info)))
+	return lipgloss.JoinHorizontal(lipgloss.Center, line, info)
 }
 
 var (
@@ -188,4 +249,18 @@ var (
 		BorderTop(false).
 		BorderLeft(false).
 		BorderRight(false)
+)
+
+var (
+	viewPortTitleStyle = func() lipgloss.Style {
+		b := lipgloss.RoundedBorder()
+		b.Right = "├"
+		return lipgloss.NewStyle().BorderStyle(b).Padding(0, 1)
+	}()
+
+	viewPortInfoStyle = func() lipgloss.Style {
+		b := lipgloss.RoundedBorder()
+		b.Left = "┤"
+		return viewPortTitleStyle.BorderStyle(b)
+	}()
 )
