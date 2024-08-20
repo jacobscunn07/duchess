@@ -25,7 +25,7 @@ func NewViewport(width, height int, options ...func(m *Model)) Model {
 	)
 
 	m := Model{
-		model:              vp.New(width, height),
+		model:              vp.New(width, height-6), //6 = height of header and footer
 		title:              "Title",
 		viewPortTitleStyle: defaultViewPortTitleStyle,
 		viewPortInfoStyle:  defaultViewPortInfoStyle,
@@ -92,4 +92,8 @@ func (m *Model) SetHeight(height int) {
 
 func (m *Model) SetWidth(width int) {
 	m.model.Width = width
+}
+
+func (m *Model) SetTitle(title string) {
+	m.title = title
 }

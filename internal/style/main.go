@@ -5,6 +5,7 @@ import "github.com/charmbracelet/lipgloss"
 const (
 	Green  = lipgloss.Color("#6fe7d2")
 	Purple = lipgloss.Color("63")
+	Black  = lipgloss.Color("#000000")
 )
 
 var (

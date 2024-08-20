@@ -1,4 +1,4 @@
-package header
+package footer
 
 import (
 	"context"
@@ -23,7 +23,9 @@ func New() *Model {
 
 type Model struct {
 	containerStyle lipgloss.Style
-	principal      string
+	profile        string
+	region         string
+	accountid      string
 }
 
 func (m Model) Init() tea.Cmd {
@@ -43,7 +45,9 @@ func (m Model) Update(msg interface{}) (components.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case sts.GetCallerIdentityMessage:
-		m.principal = msg.Arn
+		m.accountid = msg.AccountId
+		m.region = msg.Region
+		m.profile = "tbd"
 	}
 
 	return m, tea.Batch(cmds...)
@@ -61,7 +65,21 @@ func (m Model) View() string {
 				Margin(0).
 				PaddingLeft(1).
 				PaddingRight(1).
-				Render(m.principal),
+				Render(m.profile),
+			lipgloss.NewStyle().
+				Padding(0).
+				Margin(0).
+				PaddingLeft(1).
+				PaddingRight(1).
+				Render(m.region),
+			lipgloss.NewStyle().
+				Background(style.Green).
+				Foreground(style.Black).
+				Padding(0).
+				Margin(0).
+				PaddingLeft(1).
+				PaddingRight(1).
+				Render(m.accountid),
 		),
 	)
 }

@@ -2,7 +2,6 @@ package s3
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log"
 
@@ -14,7 +13,6 @@ import (
 	"github.com/jacobscunn07/duchess/internal/bubbles/viewport"
 	"github.com/jacobscunn07/duchess/internal/charmbracelet/bubbletea/messages/aws/s3"
 	"github.com/jacobscunn07/duchess/internal/components"
-	"github.com/jacobscunn07/duchess/internal/messages"
 
 	s3_sdk "github.com/aws/aws-sdk-go-v2/service/s3"
 	s3_data "github.com/jacobscunn07/duchess/internal/data/s3"
@@ -28,41 +26,45 @@ func NewBucketDetailsModel(bucket string, options ...func(*BucketDetailsModel)) 
 			bubbles.WithTitle("Objects"),
 			bubbles.WithStatusBarItemName("object", "objects"),
 		),
-		style: lipgloss.NewStyle(),
+		containerStyle: lipgloss.NewStyle().
+			Margin(0).
+			Padding(1),
 	}
 
 	for _, o := range options {
 		o(m)
 	}
 
-	w, h := m.style.GetFrameSize()
-	m.list.SetSize(m.availableWidth-w, m.availableHeight-h)
+	w, h := m.containerStyle.GetFrameSize()
+	m.list.SetSize(m.containerStyle.GetWidth()-w, m.containerStyle.GetHeight()-h)
+
+	m.viewport = viewport.NewViewport(
+		m.containerStyle.GetWidth()-w-m.containerStyle.GetHorizontalMargins(),
+		m.containerStyle.GetHeight()-h-m.containerStyle.GetVerticalMargins())
 
 	return *m
 }
 
 func BucketDetailsModelWithHeight(height int) func(m *BucketDetailsModel) {
 	return func(m *BucketDetailsModel) {
-		m.availableHeight = height
+		m.containerStyle = m.containerStyle.Height(height)
 	}
 }
 
 func BucketDetailsModelWithWidth(width int) func(m *BucketDetailsModel) {
 	return func(m *BucketDetailsModel) {
-		m.availableWidth = width
+		m.containerStyle = m.containerStyle.Width(width)
 	}
 }
 
 type BucketDetailsModel struct {
-	bucket          string
-	objects         []string
-	selectedObject  string
-	list            list.Model
-	availableWidth  int
-	availableHeight int
-	style           lipgloss.Style
-	tabContent      string
-	viewport        viewport.Model
+	bucket         string
+	objects        []string
+	selectedObject string
+	list           list.Model
+	containerStyle lipgloss.Style
+	tabContent     string
+	viewport       viewport.Model
 }
 
 func (m BucketDetailsModel) Init() tea.Cmd {
@@ -100,17 +102,6 @@ func (m BucketDetailsModel) Update(msg interface{}) (components.Model, tea.Cmd) 
 			}
 		}
 
-	case messages.AvailableWindowSizeMsg:
-		// m.updateAvailableWindowSize(msg.Width, msg.Height)
-		m.availableHeight = msg.Height
-		m.availableWidth = msg.Width
-
-		w, h := m.style.GetFrameSize()
-		m.list.SetSize(msg.Width-w, msg.Height-h)
-
-		m.viewport.SetWidth(msg.Width - w)
-		m.viewport.SetHeight(msg.Height - h) // What is 4?
-
 	case s3.ListBucketObjectsQueryMessage:
 		m.objects = msg.Objects
 
@@ -124,20 +115,10 @@ func (m BucketDetailsModel) Update(msg interface{}) (components.Model, tea.Cmd) 
 		defer msg.Contents.Close()
 
 		tabContent, _ := io.ReadAll(msg.Contents)
-
 		m.tabContent = string(tabContent)
 
-		w, h := m.style.GetFrameSize()
-
-		m.viewport = viewport.NewViewport(
-			m.availableWidth-w+2,
-			m.availableHeight-h-4, // What is 4?
-			// m.availableWidth-w,
-			// m.availableHeight-h, // What is 4?
-			viewport.WithTitle(m.selectedObject))
-
-		// m.viewport.SetContent(strings.Repeat(fmt.Sprintf("%v\n", m.tabContent), 300))
-		m.viewport.SetContent(fmt.Sprintf("availw:%v,\navailh:%v\nw:%v\nh:%v", m.availableWidth, m.availableHeight, w, h))
+		m.viewport.SetContent(m.tabContent)
+		m.viewport.SetTitle(m.selectedObject)
 	}
 
 	var cmd tea.Cmd
@@ -155,13 +136,22 @@ func (m BucketDetailsModel) View() string {
 
 	if m.tabContent == "" {
 		contents = m.list.View()
+
+		// contents = lipgloss.JoinVertical(
+		// 	lipgloss.Left,
+		// 	"S3 / Objects",
+		// 	"",
+		// 	m.list.View(),
+		// )
 	} else {
 		contents = m.viewport.View()
 	}
 
-	return lipgloss.JoinVertical(
-		lipgloss.Left,
-		contents,
+	return m.containerStyle.Render(
+		lipgloss.JoinVertical(
+			lipgloss.Left,
+			contents,
+		),
 	)
 }
 
@@ -169,15 +159,17 @@ func (m BucketDetailsModel) ViewHeight() int {
 	return lipgloss.Height(m.View())
 }
 
-// func (m *BucketDetailsModel) updateAvailableWindowSize(w, h int) (int, int) {
-// 	frameW, frameH := m.style.GetFrameSize()
+func (m BucketDetailsModel) SetSize(width, height int) components.Model {
+	frameW, frameH := m.containerStyle.GetFrameSize()
+	w, h := m.containerStyle.GetHorizontalMargins(), m.containerStyle.GetVerticalMargins()
 
-// 	m.availableWidth, m.availableHeight = w-frameW, h-frameH
+	containerWidth, containerHeight := width-w, height-h
 
-// 	m.style = m.style.
-// 		Height(m.availableHeight).
-// 		Width(m.availableWidth)
-// 		// Height(h).Width(w)
+	m.containerStyle = m.containerStyle.Width(containerWidth)
+	m.containerStyle = m.containerStyle.Height(containerHeight)
 
-// 	return m.availableWidth, m.availableHeight
-// }
+	m.viewport.SetHeight(containerHeight - frameH)
+	m.viewport.SetWidth(containerWidth - frameW)
+
+	return m
+}
