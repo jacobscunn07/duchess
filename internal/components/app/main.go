@@ -5,31 +5,31 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/jacobscunn07/duchess/internal/components"
 	"github.com/jacobscunn07/duchess/internal/components/aws/s3"
+	"github.com/jacobscunn07/duchess/internal/components/footer"
 	"github.com/jacobscunn07/duchess/internal/components/header"
-	"github.com/jacobscunn07/duchess/internal/messages"
-	"github.com/jacobscunn07/duchess/internal/style"
 )
 
 func New() *Model {
 	return &Model{
-		style:   style.Border,
-		header:  header.New(),
-		content: s3.NewListBucketModel(),
+		containerStyle: lipgloss.NewStyle().Margin(0).Padding(0),
+		header:         header.New(),
+		content:        s3.NewListBucketModel(),
+		footer:         footer.New(),
 	}
 }
 
 type Model struct {
-	style           lipgloss.Style
-	availableHeight int
-	availableWidth  int
-	header          components.Model
-	content         components.Model
+	containerStyle lipgloss.Style
+	header         components.Model
+	content        components.Model
+	footer         components.Model
 }
 
 func (m Model) Init() tea.Cmd {
 	return tea.Batch(
 		m.header.Init(),
 		m.content.Init(),
+		m.footer.Init(),
 	)
 }
 
@@ -43,19 +43,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 	case tea.WindowSizeMsg:
-		w, h := m.updateAvailableWindowSize(msg.Width, msg.Height)
+		w, h := m.containerStyle.GetFrameSize()
+		width, height := msg.Width-w, msg.Height-h
 
-		m.header, cmd = m.header.Update(messages.AvailableWindowSizeMsg{
-			Height: h,
-			Width:  w,
-		})
-		cmds = append(cmds, cmd)
+		m.containerStyle = m.containerStyle.Width(width)
+		m.containerStyle = m.containerStyle.Height(height)
 
-		m.content, cmd = m.content.Update(messages.AvailableWindowSizeMsg{
-			Height: h - m.header.ViewHeight(),
-			Width:  w,
-		})
-		cmds = append(cmds, cmd)
+		m.header = m.header.SetSize(width, 5)
+		m.content = m.content.SetSize(width, height-m.header.ViewHeight()-m.footer.ViewHeight())
+		m.footer = m.footer.SetSize(width, 5)
 	}
 
 	m.header, cmd = m.header.Update(msg)
@@ -64,31 +60,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.content, cmd = m.content.Update(msg)
 	cmds = append(cmds, cmd)
 
+	m.footer, cmd = m.footer.Update(msg)
+	cmds = append(cmds, cmd)
+
 	return m, tea.Batch(cmds...)
 }
 
 func (m Model) View() string {
-	return m.style.Render(
+	return m.containerStyle.Render(
 		lipgloss.JoinVertical(
 			lipgloss.Left,
 			m.header.View(),
 			m.content.View(),
+			m.footer.View(),
 		),
 	)
 }
 
 func (m Model) ViewHeight() int {
 	return lipgloss.Height(m.View())
-}
-
-func (m *Model) updateAvailableWindowSize(w, h int) (int, int) {
-	frameW, frameH := m.style.GetFrameSize()
-
-	m.availableWidth, m.availableHeight = w-frameW, h-frameH
-
-	m.style = m.style.
-		Height(m.availableHeight).
-		Width(m.availableWidth)
-
-	return m.availableWidth, m.availableHeight
 }

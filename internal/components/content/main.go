@@ -13,24 +13,23 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/jacobscunn07/duchess/internal/charmbracelet/bubbletea/messages/aws/s3"
 	"github.com/jacobscunn07/duchess/internal/components"
-	"github.com/jacobscunn07/duchess/internal/messages"
 	"github.com/jacobscunn07/duchess/internal/style"
 )
 
-func New() components.Model {
-	return Model{
-		style: style.Border,
-		list:  NewList(),
+func New() *Model {
+	return &Model{
+		containerStyle: lipgloss.NewStyle().
+			Margin(0).
+			Padding(1),
+		list: NewList(),
 	}
 }
 
 type Model struct {
-	style           lipgloss.Style
-	availableWidth  int
-	availableHeight int
-	list            list.Model
-	choice          string
-	quitting        bool
+	containerStyle lipgloss.Style
+	list           list.Model
+	choice         string
+	quitting       bool
 }
 
 func (m Model) Init() tea.Cmd {
@@ -49,12 +48,6 @@ func (m Model) Init() tea.Cmd {
 func (m Model) Update(msg interface{}) (components.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case messages.AvailableWindowSizeMsg:
-		m.updateAvailableWindowSize(msg.Width, msg.Height)
-
-		w, h := m.style.GetFrameSize()
-		m.list.SetSize(msg.Width-w, msg.Height-h)
-
 	case s3.ListBucketsQueryMessage:
 		buckets := []list.Item{}
 		for _, b := range msg.Buckets {
@@ -69,6 +62,7 @@ func (m Model) Update(msg interface{}) (components.Model, tea.Cmd) {
 			if ok {
 				m.choice = string(i)
 			}
+
 			return m, nil
 		}
 	}
@@ -87,23 +81,33 @@ func (m Model) View() string {
 	if m.quitting {
 		return quitTextStyle.Render("Not hungry? That’s cool.")
 	}
-	return "\n" + m.list.View()
+
+	return m.containerStyle.Render(
+		lipgloss.JoinVertical(
+			lipgloss.Left,
+			// lipgloss.NewStyle().Bold(true).Render("S3 / Buckets"),
+			// "",
+			m.list.View(),
+		),
+	)
 }
 
 func (m Model) ViewHeight() int {
 	return lipgloss.Height(m.View())
 }
 
-func (m *Model) updateAvailableWindowSize(w, h int) (int, int) {
-	frameW, frameH := m.style.GetFrameSize()
+func (m Model) SetSize(width, height int) components.Model {
+	_, frameH := m.containerStyle.GetFrameSize()
+	w, h := m.containerStyle.GetHorizontalMargins(), m.containerStyle.GetVerticalMargins()
 
-	m.availableWidth, m.availableHeight = w-frameW, h-frameH
+	containerWidth, containerHeight := width-w, height-h
 
-	m.style = m.style.
-		Height(m.availableHeight).
-		Width(m.availableWidth)
+	m.containerStyle = m.containerStyle.Width(containerWidth)
+	m.containerStyle = m.containerStyle.Height(containerHeight)
 
-	return m.availableWidth, m.availableHeight
+	m.list.SetHeight(containerHeight - frameH)
+
+	return m
 }
 
 var (

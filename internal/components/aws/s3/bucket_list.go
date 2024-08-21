@@ -11,13 +11,13 @@ import (
 	"github.com/jacobscunn07/duchess/internal/bubbles"
 	"github.com/jacobscunn07/duchess/internal/charmbracelet/bubbletea/messages/aws/s3"
 	"github.com/jacobscunn07/duchess/internal/components"
-	"github.com/jacobscunn07/duchess/internal/messages"
-	"github.com/jacobscunn07/duchess/internal/style"
 )
 
 func NewListBucketModel() components.Model {
 	return ListBucketModel{
-		style: style.Border,
+		containerStyle: lipgloss.NewStyle().
+			Margin(0).
+			Padding(1),
 		list: bubbles.NewList(
 			bubbles.WithTitle("Buckets"),
 			bubbles.WithStatusBarItemName("bucket", "buckets"),
@@ -26,10 +26,8 @@ func NewListBucketModel() components.Model {
 }
 
 type ListBucketModel struct {
-	style           lipgloss.Style
-	availableWidth  int
-	availableHeight int
-	list            list.Model
+	containerStyle lipgloss.Style
+	list           list.Model
 }
 
 func (m ListBucketModel) Init() tea.Cmd {
@@ -48,11 +46,6 @@ func (m ListBucketModel) Init() tea.Cmd {
 func (m ListBucketModel) Update(msg interface{}) (components.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case messages.AvailableWindowSizeMsg:
-		m.updateAvailableWindowSize(msg.Width, msg.Height)
-
-		w, h := m.style.GetFrameSize()
-		m.list.SetSize(msg.Width-w, msg.Height-h)
 
 	case s3.ListBucketsQueryMessage:
 		buckets := []list.Item{}
@@ -67,8 +60,8 @@ func (m ListBucketModel) Update(msg interface{}) (components.Model, tea.Cmd) {
 			if i, ok := m.list.SelectedItem().(bubbles.ListDefaultItem); ok {
 				bm := NewBucketDetailsModel(
 					string(i),
-					BucketDetailsModelWithHeight(m.availableHeight),
-					BucketDetailsModelWithWidth(m.availableWidth),
+					BucketDetailsModelWithHeight(m.containerStyle.GetHeight()),
+					BucketDetailsModelWithWidth(m.containerStyle.GetWidth()),
 				)
 
 				cmd := bm.Init()
@@ -88,21 +81,30 @@ func (m ListBucketModel) Update(msg interface{}) (components.Model, tea.Cmd) {
 }
 
 func (m ListBucketModel) View() string {
-	return m.list.View()
+	return m.containerStyle.Render(
+		lipgloss.JoinVertical(
+			lipgloss.Left,
+			// lipgloss.NewStyle().Bold(true).Render("S3 / Buckets"),
+			// "",
+			m.list.View(),
+		),
+	)
 }
 
 func (m ListBucketModel) ViewHeight() int {
 	return lipgloss.Height(m.View())
 }
 
-func (m *ListBucketModel) updateAvailableWindowSize(w, h int) (int, int) {
-	frameW, frameH := m.style.GetFrameSize()
+func (m ListBucketModel) SetSize(width, height int) components.Model {
+	_, frameH := m.containerStyle.GetFrameSize()
+	w, h := m.containerStyle.GetHorizontalMargins(), m.containerStyle.GetVerticalMargins()
 
-	m.availableWidth, m.availableHeight = w-frameW, h-frameH
+	containerWidth, containerHeight := width-w, height-h
 
-	m.style = m.style.
-		Height(m.availableHeight).
-		Width(m.availableWidth)
+	m.containerStyle = m.containerStyle.Width(containerWidth)
+	m.containerStyle = m.containerStyle.Height(containerHeight)
 
-	return m.availableWidth, m.availableHeight
+	m.list.SetHeight(containerHeight - frameH - 2)
+
+	return m
 }

@@ -6,5 +6,6 @@ type Model interface {
 	Init() tea.Cmd
 	Update(interface{}) (Model, tea.Cmd)
 	View() string
+	SetSize(width, height int) Model
 	ViewHeight() int
 }

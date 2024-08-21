@@ -2,19 +2,19 @@ package s3
 
 import (
 	"context"
+	"io"
 	"log"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/jacobscunn07/duchess/internal/bubbles"
+	"github.com/jacobscunn07/duchess/internal/bubbles/viewport"
 	"github.com/jacobscunn07/duchess/internal/charmbracelet/bubbletea/messages/aws/s3"
 	"github.com/jacobscunn07/duchess/internal/components"
-	"github.com/jacobscunn07/duchess/internal/messages"
-	"github.com/jacobscunn07/duchess/internal/style"
 
+	s3_sdk "github.com/aws/aws-sdk-go-v2/service/s3"
 	s3_data "github.com/jacobscunn07/duchess/internal/data/s3"
 )
 
@@ -26,51 +26,45 @@ func NewBucketDetailsModel(bucket string, options ...func(*BucketDetailsModel)) 
 			bubbles.WithTitle("Objects"),
 			bubbles.WithStatusBarItemName("object", "objects"),
 		),
-		style: lipgloss.NewStyle(),
-		tabs: func() string {
-			row := lipgloss.JoinHorizontal(
-				lipgloss.Top,
-				activeTab.Render("Objects"),
-				tab.Render("TBD"),
-			)
-			space := tabGap.Render(strings.Repeat(" ", 0))
-			gap := tabGap.Render(strings.Repeat(" ", max(0, lipgloss.Width(row))))
-			row = lipgloss.JoinHorizontal(lipgloss.Bottom, space, row, gap)
-
-			return row
-		}(),
+		containerStyle: lipgloss.NewStyle().
+			Margin(0).
+			Padding(1),
 	}
 
 	for _, o := range options {
 		o(m)
 	}
 
-	w, h := m.style.GetFrameSize()
-	m.list.SetSize(m.availableWidth-w, m.availableHeight-h-lipgloss.Height(m.tabs))
+	w, h := m.containerStyle.GetFrameSize()
+	m.list.SetSize(m.containerStyle.GetWidth()-w, m.containerStyle.GetHeight()-h)
+
+	m.viewport = viewport.NewViewport(
+		m.containerStyle.GetWidth()-w-m.containerStyle.GetHorizontalMargins(),
+		m.containerStyle.GetHeight()-h-m.containerStyle.GetVerticalMargins())
 
 	return *m
 }
 
 func BucketDetailsModelWithHeight(height int) func(m *BucketDetailsModel) {
 	return func(m *BucketDetailsModel) {
-		m.availableHeight = height
+		m.containerStyle = m.containerStyle.Height(height)
 	}
 }
 
 func BucketDetailsModelWithWidth(width int) func(m *BucketDetailsModel) {
 	return func(m *BucketDetailsModel) {
-		m.availableWidth = width
+		m.containerStyle = m.containerStyle.Width(width)
 	}
 }
 
 type BucketDetailsModel struct {
-	bucket          string
-	objects         []string
-	list            list.Model
-	availableWidth  int
-	availableHeight int
-	style           lipgloss.Style
-	tabs            string
+	bucket         string
+	objects        []string
+	selectedObject string
+	list           list.Model
+	containerStyle lipgloss.Style
+	tabContent     string
+	viewport       viewport.Model
 }
 
 func (m BucketDetailsModel) Init() tea.Cmd {
@@ -90,11 +84,23 @@ func (m BucketDetailsModel) Update(msg interface{}) (components.Model, tea.Cmd) 
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 
-	case messages.AvailableWindowSizeMsg:
-		m.updateAvailableWindowSize(msg.Width, msg.Height)
+	case tea.KeyMsg:
+		switch keypress := msg.String(); keypress {
+		case "enter":
+			if i, ok := m.list.SelectedItem().(bubbles.ListDefaultItem); ok {
+				m.selectedObject = string(i)
+				cfg, err := config.LoadDefaultConfig(context.TODO())
+				if err != nil {
+					log.Fatalf("unable to load SDK config, %v", err)
+				}
 
-		w, h := m.style.GetFrameSize()
-		m.list.SetSize(msg.Width-w, msg.Height-h-lipgloss.Height(m.tabs))
+				client := s3_sdk.NewFromConfig(cfg)
+
+				api := s3_data.NewApi(client)
+				cmd := s3.GetObjectQuery(context.TODO(), *api, m.bucket, m.selectedObject)
+				cmds = append(cmds, cmd)
+			}
+		}
 
 	case s3.ListBucketObjectsQueryMessage:
 		m.objects = msg.Objects
@@ -105,19 +111,47 @@ func (m BucketDetailsModel) Update(msg interface{}) (components.Model, tea.Cmd) 
 		}
 
 		m.list.SetItems(objects)
+	case s3.GetObjectQueryMessage:
+		defer msg.Contents.Close()
+
+		tabContent, _ := io.ReadAll(msg.Contents)
+		m.tabContent = string(tabContent)
+
+		m.viewport.SetContent(m.tabContent)
+		m.viewport.SetTitle(m.selectedObject)
 	}
+
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
+	cmds = append(cmds, cmd)
+
+	m.viewport, cmd = m.viewport.Update(msg)
 	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
 }
 
 func (m BucketDetailsModel) View() string {
-	return lipgloss.JoinVertical(
-		lipgloss.Left,
-		m.tabs,
-		m.list.View(),
+	var contents string
+
+	if m.tabContent == "" {
+		contents = m.list.View()
+
+		// contents = lipgloss.JoinVertical(
+		// 	lipgloss.Left,
+		// 	"S3 / Objects",
+		// 	"",
+		// 	m.list.View(),
+		// )
+	} else {
+		contents = m.viewport.View()
+	}
+
+	return m.containerStyle.Render(
+		lipgloss.JoinVertical(
+			lipgloss.Left,
+			contents,
+		),
 	)
 }
 
@@ -125,67 +159,17 @@ func (m BucketDetailsModel) ViewHeight() int {
 	return lipgloss.Height(m.View())
 }
 
-func (m *BucketDetailsModel) updateAvailableWindowSize(w, h int) (int, int) {
-	frameW, frameH := m.style.GetFrameSize()
+func (m BucketDetailsModel) SetSize(width, height int) components.Model {
+	frameW, frameH := m.containerStyle.GetFrameSize()
+	w, h := m.containerStyle.GetHorizontalMargins(), m.containerStyle.GetVerticalMargins()
 
-	m.availableWidth, m.availableHeight = w-frameW, h-frameH
+	containerWidth, containerHeight := width-w, height-h
 
-	m.style = m.style.
-		Height(m.availableHeight).
-		Width(m.availableWidth)
+	m.containerStyle = m.containerStyle.Width(containerWidth)
+	m.containerStyle = m.containerStyle.Height(containerHeight)
 
-	return m.availableWidth, m.availableHeight
+	m.viewport.SetHeight(containerHeight - frameH)
+	m.viewport.SetWidth(containerWidth - frameW)
+
+	return m
 }
-
-var (
-
-	// General.
-
-	subtle    = lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#383838"}
-	highlight = lipgloss.AdaptiveColor{Light: "#874BFD", Dark: "#7D56F4"}
-	special   = lipgloss.AdaptiveColor{Light: "#43BF6D", Dark: "#73F59F"}
-
-	divider = lipgloss.NewStyle().
-		SetString("•").
-		Padding(0, 1).
-		Foreground(subtle).
-		String()
-
-	url = lipgloss.NewStyle().Foreground(special).Render
-
-	// Tabs.
-
-	activeTabBorder = lipgloss.Border{
-		Top:         "─",
-		Bottom:      " ",
-		Left:        "│",
-		Right:       "│",
-		TopLeft:     "╭",
-		TopRight:    "╮",
-		BottomLeft:  "┘",
-		BottomRight: "└",
-	}
-
-	tabBorder = lipgloss.Border{
-		Top:         "─",
-		Bottom:      "─",
-		Left:        "│",
-		Right:       "│",
-		TopLeft:     "╭",
-		TopRight:    "╮",
-		BottomLeft:  "┴",
-		BottomRight: "┴",
-	}
-
-	tab = lipgloss.NewStyle().
-		Border(tabBorder, true).
-		BorderForeground(style.Green).
-		Padding(0, 1)
-
-	activeTab = tab.Border(activeTabBorder, true)
-
-	tabGap = tab.
-		BorderTop(false).
-		BorderLeft(false).
-		BorderRight(false)
-)

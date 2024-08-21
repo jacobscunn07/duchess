@@ -2,6 +2,7 @@ package s3
 
 import (
 	"context"
+	"io"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -37,4 +38,23 @@ func (m *BucketObjectRepository) List() ([]BucketObject, error) {
 	}
 
 	return bucketObjects, nil
+}
+
+func (m *BucketObjectRepository) Get(key string) (string, error) {
+	result, err := m.s3.GetObject(context.TODO(), &s3.GetObjectInput{
+		Bucket: aws.String(m.bucket),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		return "", err
+	}
+
+	defer result.Body.Close()
+
+	contents, err := io.ReadAll(result.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return string(contents), nil
 }
