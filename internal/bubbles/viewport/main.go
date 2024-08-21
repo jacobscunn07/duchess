@@ -7,20 +7,28 @@ import (
 	vp "github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/jacobscunn07/duchess/internal/style"
 )
 
 func NewViewport(width, height int, options ...func(m *Model)) Model {
 	var (
 		defaultViewPortTitleStyle = func() lipgloss.Style {
-			b := lipgloss.RoundedBorder()
+			b := lipgloss.NormalBorder()
 			b.Right = "├"
-			return lipgloss.NewStyle().BorderStyle(b).Padding(0, 1)
+			return lipgloss.NewStyle().
+				BorderStyle(b).
+				Padding(0, 1).
+				BorderForeground(style.Green).
+				Foreground(style.Green)
 		}()
 
 		defaultViewPortInfoStyle = func() lipgloss.Style {
-			b := lipgloss.RoundedBorder()
+			b := lipgloss.NormalBorder()
 			b.Left = "┤"
-			return defaultViewPortTitleStyle.BorderStyle(b)
+			return defaultViewPortTitleStyle.
+				BorderStyle(b).
+				BorderForeground(style.Green).
+				Foreground(style.Green)
 		}()
 	)
 
@@ -72,18 +80,23 @@ func (m Model) View() string {
 
 func (m Model) headerView() string {
 	title := m.viewPortTitleStyle.Render(m.title)
-	line := strings.Repeat("─", max(0, m.model.Width-lipgloss.Width(title)))
+	line := lipgloss.NewStyle().Foreground(style.Green).Render(strings.Repeat("─", max(0, m.model.Width-lipgloss.Width(title))))
 	return lipgloss.JoinHorizontal(lipgloss.Center, title, line)
 }
 
 func (m Model) footerView() string {
 	info := m.viewPortInfoStyle.Render(fmt.Sprintf("%3.f%%", m.model.ScrollPercent()*100))
-	line := strings.Repeat("─", max(0, m.model.Width-lipgloss.Width(info)))
+	line := lipgloss.NewStyle().Foreground(style.Green).Render(strings.Repeat("─", max(0, m.model.Width-lipgloss.Width(info))))
 	return lipgloss.JoinHorizontal(lipgloss.Center, line, info)
 }
 
 func (m *Model) SetContent(content string) {
-	m.model.SetContent(content)
+	m.model.SetContent(
+		lipgloss.
+			NewStyle().
+			PaddingLeft(2).
+			Render(content),
+	)
 }
 
 func (m *Model) SetHeight(height int) {
