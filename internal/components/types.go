@@ -8,4 +8,5 @@ type Model interface {
 	View() string
 	SetSize(width, height int) Model
 	ViewHeight() int
+	GetBreadcrumb() []string
 }

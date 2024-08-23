@@ -16,8 +16,11 @@ func New() *Model {
 	return &Model{
 		containerStyle: lipgloss.NewStyle().
 			Background(style.Green).
+			Foreground(style.Black).
 			Padding(0).
-			Margin(0),
+			Margin(0).
+			PaddingLeft(1).
+			PaddingRight(1),
 	}
 }
 
@@ -54,7 +57,7 @@ func (m Model) View() string {
 		lipgloss.Left,
 		lipgloss.JoinHorizontal(
 			lipgloss.Left,
-			lipgloss.NewStyle().
+			m.containerStyle.
 				Background(style.Green).
 				Foreground(style.Black).
 				Padding(0).
@@ -78,4 +81,8 @@ func (m Model) SetSize(width, height int) components.Model {
 	m.containerStyle = m.containerStyle.Width(containerWidth)
 
 	return m
+}
+
+func (m Model) GetBreadcrumb() []string {
+	return []string{}
 }

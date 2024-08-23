@@ -1,12 +1,15 @@
 package app
 
 import (
+	"strings"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/jacobscunn07/duchess/internal/components"
 	"github.com/jacobscunn07/duchess/internal/components/aws/s3"
 	"github.com/jacobscunn07/duchess/internal/components/footer"
 	"github.com/jacobscunn07/duchess/internal/components/header"
+	"github.com/jacobscunn07/duchess/internal/style"
 )
 
 func New() *Model {
@@ -50,7 +53,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.containerStyle = m.containerStyle.Height(height)
 
 		m.header = m.header.SetSize(width, 5)
-		m.content = m.content.SetSize(width, height-m.header.ViewHeight()-m.footer.ViewHeight())
+		m.content = m.content.SetSize(width, height-m.header.ViewHeight()-lipgloss.Height(m.GetBreadcrumbsView())-m.footer.ViewHeight())
 		m.footer = m.footer.SetSize(width, 5)
 	}
 
@@ -71,6 +74,7 @@ func (m Model) View() string {
 		lipgloss.JoinVertical(
 			lipgloss.Left,
 			m.header.View(),
+			m.GetBreadcrumbsView(),
 			m.content.View(),
 			m.footer.View(),
 		),
@@ -79,4 +83,17 @@ func (m Model) View() string {
 
 func (m Model) ViewHeight() int {
 	return lipgloss.Height(m.View())
+}
+
+func (m Model) GetBreadcrumb() []string {
+	return []string{}
+}
+
+func (m Model) GetBreadcrumbsView() string {
+	style := lipgloss.NewStyle().
+		Padding(0).
+		Margin(1, 0, 0, 1).
+		Bold(true).
+		Foreground(style.Green)
+	return style.Render(strings.Join(m.content.GetBreadcrumb(), " / "))
 }

@@ -117,3 +117,7 @@ func (m BucketObjectDetailsModel) SetSize(width, height int) components.Model {
 
 	return m
 }
+
+func (m BucketObjectDetailsModel) GetBreadcrumb() []string {
+	return []string{"Buckets", m.bucket, m.key}
+}
