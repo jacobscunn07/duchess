@@ -2,7 +2,6 @@ package s3
 
 import (
 	"context"
-	"io"
 	"log"
 
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -10,11 +9,9 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/jacobscunn07/duchess/internal/bubbles"
-	"github.com/jacobscunn07/duchess/internal/bubbles/viewport"
 	"github.com/jacobscunn07/duchess/internal/charmbracelet/bubbletea/messages/aws/s3"
 	"github.com/jacobscunn07/duchess/internal/components"
 
-	s3_sdk "github.com/aws/aws-sdk-go-v2/service/s3"
 	s3_data "github.com/jacobscunn07/duchess/internal/data/s3"
 )
 
@@ -38,10 +35,6 @@ func NewBucketDetailsModel(bucket string, options ...func(*BucketDetailsModel)) 
 	w, h := m.containerStyle.GetFrameSize()
 	m.list.SetSize(m.containerStyle.GetWidth()-w, m.containerStyle.GetHeight()-h)
 
-	m.viewport = viewport.NewViewport(
-		m.containerStyle.GetWidth()-w-m.containerStyle.GetHorizontalMargins(),
-		m.containerStyle.GetHeight()-h-m.containerStyle.GetVerticalMargins())
-
 	return *m
 }
 
@@ -60,11 +53,8 @@ func BucketDetailsModelWithWidth(width int) func(m *BucketDetailsModel) {
 type BucketDetailsModel struct {
 	bucket         string
 	objects        []string
-	selectedObject string
 	list           list.Model
 	containerStyle lipgloss.Style
-	tabContent     string
-	viewport       viewport.Model
 }
 
 func (m BucketDetailsModel) Init() tea.Cmd {
@@ -88,17 +78,16 @@ func (m BucketDetailsModel) Update(msg interface{}) (components.Model, tea.Cmd) 
 		switch keypress := msg.String(); keypress {
 		case "enter":
 			if i, ok := m.list.SelectedItem().(bubbles.ListDefaultItem); ok {
-				m.selectedObject = string(i)
-				cfg, err := config.LoadDefaultConfig(context.TODO())
-				if err != nil {
-					log.Fatalf("unable to load SDK config, %v", err)
-				}
+				bodm := NewBucketObjectDetailsModel(
+					m.bucket,
+					string(i),
+					BucketObjectDetailsModelWithHeight(m.containerStyle.GetHeight()),
+					BucketObjectDetailsModelWithWidth(m.containerStyle.GetWidth()),
+				)
 
-				client := s3_sdk.NewFromConfig(cfg)
-
-				api := s3_data.NewApi(client)
-				cmd := s3.GetObjectQuery(context.TODO(), *api, m.bucket, m.selectedObject)
+				cmd := bodm.Init()
 				cmds = append(cmds, cmd)
+				return bodm, tea.Batch(cmds...)
 			}
 		}
 
@@ -111,46 +100,20 @@ func (m BucketDetailsModel) Update(msg interface{}) (components.Model, tea.Cmd) 
 		}
 
 		m.list.SetItems(objects)
-	case s3.GetObjectQueryMessage:
-		defer msg.Contents.Close()
-
-		tabContent, _ := io.ReadAll(msg.Contents)
-		m.tabContent = string(tabContent)
-
-		m.viewport.SetContent(m.tabContent)
-		m.viewport.SetTitle(m.selectedObject)
 	}
 
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
 	cmds = append(cmds, cmd)
 
-	m.viewport, cmd = m.viewport.Update(msg)
-	cmds = append(cmds, cmd)
-
 	return m, tea.Batch(cmds...)
 }
 
 func (m BucketDetailsModel) View() string {
-	var contents string
-
-	if m.tabContent == "" {
-		contents = m.list.View()
-
-		// contents = lipgloss.JoinVertical(
-		// 	lipgloss.Left,
-		// 	"S3 / Objects",
-		// 	"",
-		// 	m.list.View(),
-		// )
-	} else {
-		contents = m.viewport.View()
-	}
-
 	return m.containerStyle.Render(
 		lipgloss.JoinVertical(
 			lipgloss.Left,
-			contents,
+			m.list.View(),
 		),
 	)
 }
@@ -160,7 +123,6 @@ func (m BucketDetailsModel) ViewHeight() int {
 }
 
 func (m BucketDetailsModel) SetSize(width, height int) components.Model {
-	frameW, frameH := m.containerStyle.GetFrameSize()
 	w, h := m.containerStyle.GetHorizontalMargins(), m.containerStyle.GetVerticalMargins()
 
 	containerWidth, containerHeight := width-w, height-h
@@ -168,8 +130,9 @@ func (m BucketDetailsModel) SetSize(width, height int) components.Model {
 	m.containerStyle = m.containerStyle.Width(containerWidth)
 	m.containerStyle = m.containerStyle.Height(containerHeight)
 
-	m.viewport.SetHeight(containerHeight - frameH)
-	m.viewport.SetWidth(containerWidth - frameW)
-
 	return m
+}
+
+func (m BucketDetailsModel) GetBreadcrumb() []string {
+	return []string{"Buckets", m.bucket}
 }

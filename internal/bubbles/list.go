@@ -70,6 +70,7 @@ func NewList(options ...func(*list.Model)) list.Model {
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
 	l.SetShowHelp(false)
+	l.SetShowTitle(false)
 
 	for _, o := range options {
 		o(&l)

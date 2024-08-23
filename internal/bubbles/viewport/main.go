@@ -33,12 +33,13 @@ func NewViewport(width, height int, options ...func(m *Model)) Model {
 	)
 
 	m := Model{
-		model:              vp.New(width, height-6), //6 = height of header and footer
+		model:              vp.New(width, height),
 		title:              "Title",
 		viewPortTitleStyle: defaultViewPortTitleStyle,
 		viewPortInfoStyle:  defaultViewPortInfoStyle,
 	}
 
+	m.SetHeight(height)
 	m.model.YPosition = lipgloss.Height(m.headerView())
 	m.model.HighPerformanceRendering = false
 

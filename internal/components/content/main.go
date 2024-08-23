@@ -110,6 +110,10 @@ func (m Model) SetSize(width, height int) components.Model {
 	return m
 }
 
+func (m Model) GetBreadcrumb() []string {
+	return []string{}
+}
+
 var (
 	titleStyle        = style.BoldPrimary
 	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
