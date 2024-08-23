@@ -10,6 +10,7 @@ import (
 	"github.com/jacobscunn07/duchess/internal/components/footer"
 	"github.com/jacobscunn07/duchess/internal/components/header"
 	"github.com/jacobscunn07/duchess/internal/style"
+	"github.com/jacobscunn07/duchess/internal/utils"
 )
 
 func New() *Model {
@@ -33,6 +34,7 @@ func (m Model) Init() tea.Cmd {
 		m.header.Init(),
 		m.content.Init(),
 		m.footer.Init(),
+		utils.RefreshCommand(),
 	)
 }
 
@@ -55,6 +57,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.header = m.header.SetSize(width, 5)
 		m.content = m.content.SetSize(width, height-m.header.ViewHeight()-lipgloss.Height(m.GetBreadcrumbsView())-m.footer.ViewHeight())
 		m.footer = m.footer.SetSize(width, 5)
+	case utils.RefreshCommandMessage:
+		cmd = utils.RefreshCommand()
+		cmds = append(cmds, cmd)
 	}
 
 	m.header, cmd = m.header.Update(msg)

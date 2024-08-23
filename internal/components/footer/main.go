@@ -2,7 +2,9 @@ package footer
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	tea "github.com/charmbracelet/bubbletea"
@@ -10,6 +12,7 @@ import (
 	"github.com/jacobscunn07/duchess/internal/charmbracelet/bubbletea/messages/aws/sts"
 	"github.com/jacobscunn07/duchess/internal/components"
 	"github.com/jacobscunn07/duchess/internal/style"
+	"github.com/jacobscunn07/duchess/internal/utils"
 )
 
 func New() *Model {
@@ -23,6 +26,7 @@ func New() *Model {
 
 type Model struct {
 	containerStyle lipgloss.Style
+	time           time.Time
 	profile        string
 	region         string
 	accountid      string
@@ -48,6 +52,8 @@ func (m Model) Update(msg interface{}) (components.Model, tea.Cmd) {
 		m.accountid = msg.AccountId
 		m.region = msg.Region
 		m.profile = "tbd"
+	case utils.RefreshCommandMessage:
+		m.time = msg.Time
 	}
 
 	return m, tea.Batch(cmds...)
@@ -80,6 +86,12 @@ func (m Model) View() string {
 				PaddingLeft(1).
 				PaddingRight(1).
 				Render(m.accountid),
+			lipgloss.NewStyle().
+				Padding(0).
+				Margin(0).
+				PaddingLeft(1).
+				PaddingRight(1).
+				Render("", fmt.Sprint(m.time.Format("03:04:05PM"))),
 		),
 	)
 }
