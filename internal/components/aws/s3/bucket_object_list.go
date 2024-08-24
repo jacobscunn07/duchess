@@ -76,6 +76,12 @@ func (m BucketDetailsModel) Update(msg interface{}) (components.Model, tea.Cmd) 
 
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
+		case "esc":
+			blm := NewListBucketModel()
+			blm = blm.SetSize(m.containerStyle.GetWidth(), m.containerStyle.GetHeight())
+			cmd := blm.Init()
+			cmds = append(cmds, cmd)
+			return blm, tea.Batch(cmds...)
 		case "enter":
 			if i, ok := m.list.SelectedItem().(bubbles.ListDefaultItem); ok {
 				bodm := NewBucketObjectDetailsModel(

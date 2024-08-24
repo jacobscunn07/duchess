@@ -73,6 +73,18 @@ func (m BucketObjectDetailsModel) Init() tea.Cmd {
 func (m BucketObjectDetailsModel) Update(msg interface{}) (components.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
+
+	case tea.KeyMsg:
+		switch keypress := msg.String(); keypress {
+		case "esc":
+			m2 := NewBucketDetailsModel(
+				m.bucket,
+				BucketDetailsModelWithHeight(m.containerStyle.GetHeight()),
+				BucketDetailsModelWithWidth(m.containerStyle.GetWidth()))
+			cmd := m2.Init()
+			cmds = append(cmds, cmd)
+			return m2, tea.Batch(cmds...)
+		}
 	case s3.GetObjectQueryMessage:
 		defer msg.Contents.Close()
 
