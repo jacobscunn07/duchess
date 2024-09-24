@@ -1,4 +1,4 @@
-package app
+package layout
 
 import (
 	"strings"
@@ -7,29 +7,27 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/jacobscunn07/duchess/internal/components"
 	"github.com/jacobscunn07/duchess/internal/components/aws/s3"
-	"github.com/jacobscunn07/duchess/internal/components/footer"
-	"github.com/jacobscunn07/duchess/internal/components/header"
 	"github.com/jacobscunn07/duchess/internal/style"
 	"github.com/jacobscunn07/duchess/internal/utils"
 )
 
-func New() *Model {
-	return &Model{
+func NewApp() *AppModel {
+	return &AppModel{
 		containerStyle: lipgloss.NewStyle().Margin(0).Padding(0),
-		header:         header.New(),
-		content:        s3.NewListBucketModel(),
-		footer:         footer.New(),
+		header:         NewHeader(),
+		content:        s3.NewServiceShell(),
+		footer:         NewFooter(),
 	}
 }
 
-type Model struct {
+type AppModel struct {
 	containerStyle lipgloss.Style
 	header         components.Model
 	content        components.Model
 	footer         components.Model
 }
 
-func (m Model) Init() tea.Cmd {
+func (m AppModel) Init() tea.Cmd {
 	return tea.Batch(
 		m.header.Init(),
 		m.content.Init(),
@@ -38,7 +36,7 @@ func (m Model) Init() tea.Cmd {
 	)
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
@@ -74,7 +72,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m Model) View() string {
+func (m AppModel) View() string {
 	return m.containerStyle.Render(
 		lipgloss.JoinVertical(
 			lipgloss.Left,
@@ -86,15 +84,15 @@ func (m Model) View() string {
 	)
 }
 
-func (m Model) ViewHeight() int {
+func (m AppModel) ViewHeight() int {
 	return lipgloss.Height(m.View())
 }
 
-func (m Model) GetBreadcrumb() []string {
+func (m AppModel) GetBreadcrumb() []string {
 	return []string{}
 }
 
-func (m Model) GetBreadcrumbsView() string {
+func (m AppModel) GetBreadcrumbsView() string {
 	style := lipgloss.NewStyle().
 		Padding(0).
 		Margin(1, 0, 0, 1).

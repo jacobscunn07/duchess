@@ -5,11 +5,11 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/jacobscunn07/duchess/internal/components/app"
+	"github.com/jacobscunn07/duchess/internal/components/layout"
 )
 
 func main() {
-	duchess := app.New()
+	duchess := layout.NewApp()
 
 	if _, err := tea.NewProgram(duchess, tea.WithAltScreen()).Run(); err != nil {
 		fmt.Println("Error running program:", err)

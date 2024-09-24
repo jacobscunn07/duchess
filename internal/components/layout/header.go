@@ -1,10 +1,8 @@
-package footer
+package layout
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	tea "github.com/charmbracelet/bubbletea"
@@ -12,27 +10,26 @@ import (
 	"github.com/jacobscunn07/duchess/internal/charmbracelet/bubbletea/messages/aws/sts"
 	"github.com/jacobscunn07/duchess/internal/components"
 	"github.com/jacobscunn07/duchess/internal/style"
-	"github.com/jacobscunn07/duchess/internal/utils"
 )
 
-func New() *Model {
-	return &Model{
+func NewHeader() *HeaderModel {
+	return &HeaderModel{
 		containerStyle: lipgloss.NewStyle().
 			Background(style.Green).
+			Foreground(style.Black).
 			Padding(0).
-			Margin(0),
+			Margin(0).
+			PaddingLeft(1).
+			PaddingRight(1),
 	}
 }
 
-type Model struct {
+type HeaderModel struct {
 	containerStyle lipgloss.Style
-	time           time.Time
-	profile        string
-	region         string
-	accountid      string
+	principal      string
 }
 
-func (m Model) Init() tea.Cmd {
+func (m HeaderModel) Init() tea.Cmd {
 	cfg, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
 		log.Fatalf("unable to load SDK config, %v", err)
@@ -45,62 +42,38 @@ func (m Model) Init() tea.Cmd {
 	)
 }
 
-func (m Model) Update(msg interface{}) (components.Model, tea.Cmd) {
+func (m HeaderModel) Update(msg interface{}) (components.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case sts.GetCallerIdentityMessage:
-		m.accountid = msg.AccountId
-		m.region = msg.Region
-		m.profile = "tbd"
-	case utils.RefreshCommandMessage:
-		m.time = msg.Time
+		m.principal = msg.Arn
 	}
 
 	return m, tea.Batch(cmds...)
 }
 
-func (m Model) View() string {
+func (m HeaderModel) View() string {
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
 		lipgloss.JoinHorizontal(
 			lipgloss.Left,
-			lipgloss.NewStyle().
+			m.containerStyle.
 				Background(style.Green).
 				Foreground(style.Black).
 				Padding(0).
 				Margin(0).
 				PaddingLeft(1).
 				PaddingRight(1).
-				Render(m.profile),
-			lipgloss.NewStyle().
-				Padding(0).
-				Margin(0).
-				PaddingLeft(1).
-				PaddingRight(1).
-				Render(m.region),
-			lipgloss.NewStyle().
-				Background(style.Green).
-				Foreground(style.Black).
-				Padding(0).
-				Margin(0).
-				PaddingLeft(1).
-				PaddingRight(1).
-				Render(m.accountid),
-			lipgloss.NewStyle().
-				Padding(0).
-				Margin(0).
-				PaddingLeft(1).
-				PaddingRight(1).
-				Render("", fmt.Sprint(m.time.Format("03:04:05PM"))),
+				Render(m.principal),
 		),
 	)
 }
 
-func (m Model) ViewHeight() int {
+func (m HeaderModel) ViewHeight() int {
 	return lipgloss.Height(m.View())
 }
 
-func (m Model) SetSize(width, height int) components.Model {
+func (m HeaderModel) SetSize(width, height int) components.Model {
 	w, h := m.containerStyle.GetFrameSize()
 
 	containerWidth, _ := width-w, height-h
@@ -110,6 +83,6 @@ func (m Model) SetSize(width, height int) components.Model {
 	return m
 }
 
-func (m Model) GetBreadcrumb() []string {
+func (m HeaderModel) GetBreadcrumb() []string {
 	return []string{}
 }
