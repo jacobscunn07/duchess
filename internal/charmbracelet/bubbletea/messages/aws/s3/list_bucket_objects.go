@@ -2,6 +2,7 @@ package s3
 
 import (
 	"context"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/jacobscunn07/duchess/internal/data/s3"
@@ -14,7 +15,9 @@ func ListBucketObjectsQuery(ctx context.Context, repository s3.BucketObjectRepos
 
 		msg.Objects = []string{}
 		for _, o := range result {
-			msg.Objects = append(msg.Objects, o.Key)
+			if !strings.HasSuffix(o.Key, "/") {
+				msg.Objects = append(msg.Objects, o.Key)
+			}
 		}
 
 		return msg
