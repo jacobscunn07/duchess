@@ -51,7 +51,7 @@ func (m FooterModel) Update(msg interface{}) (components.Model, tea.Cmd) {
 	case sts.GetCallerIdentityMessage:
 		m.accountid = msg.AccountId
 		m.region = msg.Region
-		m.profile = "tbd"
+		m.profile = msg.Profile
 	case utils.RefreshCommandMessage:
 		m.time = msg.Time
 	}
