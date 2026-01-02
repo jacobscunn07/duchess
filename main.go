@@ -60,8 +60,14 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		// Any keypress will clear the error
+		if m.err != nil {
+			m.err = nil
+		}
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
@@ -72,7 +78,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.switching {
 				if i, ok := m.profiles.SelectedItem().(item); ok {
 					m.currentProfile = string(i)
-					m.switching = false
 					m.loading = true
 					return m, getARN(m.currentProfile)
 				}
@@ -89,36 +94,36 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case gotARNMsg:
 		m.loading = false
 		m.currentARN = string(msg)
+		m.err = nil // Clear any previous error
+		m.switching = false // Set switching to false here, when ARN is successfully fetched
 	case errMsg:
 		m.err = msg
 		m.loading = false
+		m.switching = false // Go back to the main view on error
 		return m, nil
 	case spinner.TickMsg:
-		var cmd tea.Cmd
 		m.spinner, cmd = m.spinner.Update(msg)
 		return m, cmd
 	}
 
 	if m.switching {
-		var cmd tea.Cmd
 		m.profiles, cmd = m.profiles.Update(msg)
 		return m, cmd
 	}
 
-	return m, nil
+	return m, cmd
 }
 
 func (m model) View() string {
-	if m.err != nil {
-		return fmt.Sprintf("\nError: %v\n\n", m.err)
-	}
-
 	if m.switching {
-		return appStyle.Render(m.profiles.View())
+		return appStyle.Render(m.profiles.View()) // Revert to this
 	}
 
+	// This is the main view (m.switching is false)
 	s := "AWS Profile Switcher\n\n"
-	if m.loading {
+	if m.err != nil {
+		s += fmt.Sprintf("Error: %v\n\n", m.err) // Display error here
+	} else if m.loading {
 		s += m.spinner.View() + " Fetching Principal ARN..."
 	} else {
 		s += fmt.Sprintf("Current Profile: %s\n", m.currentProfile)
