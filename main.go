@@ -31,6 +31,7 @@ type model struct {
 	profiles       list.Model
 	currentARN     string
 	currentProfile string
+	currentRegion  string
 	loading        bool
 	spinner        spinner.Model
 	err            error
@@ -38,7 +39,10 @@ type model struct {
 	height         int
 }
 
-type gotARNMsg string
+type gotARNAndRegionMsg struct {
+	arn    string
+	region string
+}
 type gotProfilesMsg []list.Item
 type errMsg struct{ err error }
 
@@ -95,7 +99,7 @@ func newModel() model {
 }
 
 func (m model) Init() tea.Cmd {
-	return tea.Batch(m.spinner.Tick, getProfiles, getARN(m.currentProfile))
+	return tea.Batch(m.spinner.Tick, getProfiles(), getARN(m.currentProfile))
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -128,9 +132,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.profiles.SetSize(m.width-h, m.height - 1 - v) // Subtract 1 for banner height
 	case gotProfilesMsg:
 		m.profiles.SetItems(msg)
-	case gotARNMsg:
+	case gotARNAndRegionMsg:
 		m.loading = false
-		m.currentARN = string(msg)
+		m.currentARN = msg.arn
+		m.currentRegion = msg.region
 		m.err = nil // Clear any previous error
 	case errMsg:
 		m.err = msg
@@ -155,7 +160,7 @@ func (m model) View() string {
 		arnDisplay = m.currentARN
 	}
 
-	bannerText := fmt.Sprintf("Profile: %s | ARN: %s", m.currentProfile, arnDisplay)
+	bannerText := fmt.Sprintf("Profile: %s | ARN: %s | Region: %s", m.currentProfile, arnDisplay, m.currentRegion)
 
 	// To make the banner full-width, we set its width to the model's width (the screen width).
 	// We also explicitly set the alignment to left to ensure text is truncated from the right.
@@ -179,7 +184,7 @@ func getARN(profile string) tea.Cmd {
 		if err != nil {
 			return errMsg{err}
 		}
-		return gotARNMsg(*identity.Arn)
+		return gotARNAndRegionMsg{arn: *identity.Arn, region: cfg.Region}
 	}
 }
 
@@ -189,34 +194,36 @@ func (i item) Title() string       { return string(i) }
 func (i item) Description() string { return "" }
 func (i item) FilterValue() string { return string(i) }
 
-func getProfiles() tea.Msg {
-	usr, err := user.Current()
-	if err != nil {
-		return errMsg{err}
-	}
-
-	configFile := filepath.Join(usr.HomeDir, ".aws", "config")
-	cfg, err := ini.Load(configFile)
-	if err != nil {
-		return errMsg{fmt.Errorf("failed to read AWS config file: %w", err)}
-	}
-
-	var profiles []string
-	for _, section := range cfg.Sections() {
-		if strings.HasPrefix(section.Name(), "profile ") {
-			profiles = append(profiles, strings.TrimPrefix(section.Name(), "profile "))
+func getProfiles() tea.Cmd {
+	return func() tea.Msg {
+		usr, err := user.Current()
+		if err != nil {
+			return errMsg{err}
 		}
-	}
-	// Add default profile if it exists
-	if _, err := cfg.GetSection("default"); err == nil {
-		profiles = append(profiles, "default")
-	}
 
-	items := make([]list.Item, len(profiles))
-	for i, p := range profiles {
-		items[i] = item(p)
+		configFile := filepath.Join(usr.HomeDir, ".aws", "config")
+		cfg, err := ini.Load(configFile)
+		if err != nil {
+			return errMsg{fmt.Errorf("failed to read AWS config file: %w", err)}
+		}
+
+		var profiles []string
+		for _, section := range cfg.Sections() {
+			if strings.HasPrefix(section.Name(), "profile ") {
+				profiles = append(profiles, strings.TrimPrefix(section.Name(), "profile "))
+			}
+		}
+		// Add default profile if it exists
+		if _, err := cfg.GetSection("default"); err == nil {
+			profiles = append(profiles, "default")
+		}
+
+		items := make([]list.Item, len(profiles))
+		for i, p := range profiles {
+			items[i] = item(p)
+		}
+		return gotProfilesMsg(items)
 	}
-	return gotProfilesMsg(items)
 }
 
 func main() {
