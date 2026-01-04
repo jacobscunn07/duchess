@@ -19,7 +19,12 @@ import (
 )
 
 var (
-	appStyle = lipgloss.NewStyle().Padding(1, 2)
+	appStyle    = lipgloss.NewStyle().Padding(1, 2)
+	bannerStyle = lipgloss.NewStyle().
+			Background(lipgloss.Color("#6fe7d2")).
+			Foreground(lipgloss.Color("#000000")).
+			PaddingLeft(1).
+			PaddingRight(1)
 )
 
 type model struct {
@@ -48,15 +53,22 @@ func newModel() model {
 	l := list.New(nil, list.NewDefaultDelegate(), 0, 0)
 	l.Title = "Select AWS Profile"
 
-	return model{
+	m := model{
 		profiles: l,
 		spinner:  s,
 		loading:  true,
 	}
+
+	m.currentProfile = os.Getenv("AWS_PROFILE")
+	if m.currentProfile == "" {
+		m.currentProfile = "default"
+	}
+
+	return m
 }
 
 func (m model) Init() tea.Cmd {
-	return tea.Batch(m.spinner.Tick, getProfiles, getARN(""))
+	return tea.Batch(m.spinner.Tick, getProfiles, getARN(m.currentProfile))
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -115,23 +127,26 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	if m.switching {
-		return appStyle.Render(m.profiles.View()) // Revert to this
-	}
-
-	// This is the main view (m.switching is false)
-	s := "AWS Profile Switcher\n\n"
-	if m.err != nil {
-		s += fmt.Sprintf("Error: %v\n\n", m.err) // Display error here
-	} else if m.loading {
-		s += m.spinner.View() + " Fetching Principal ARN..."
+	var arnDisplay string
+	if m.loading {
+		arnDisplay = m.spinner.View() + " Fetching..."
+	} else if m.err != nil {
+		arnDisplay = "Error: " + m.err.Error()
 	} else {
-		s += fmt.Sprintf("Current Profile: %s\n", m.currentProfile)
-		s += fmt.Sprintf("ARN: %s\n\n", m.currentARN)
+		arnDisplay = m.currentARN
 	}
 
-	s += "\nPress 'x' to switch profiles, 'q' to quit."
-	return appStyle.Render(s)
+	banner := bannerStyle.Render(fmt.Sprintf("Profile: %s | ARN: %s", m.currentProfile, arnDisplay))
+
+	var mainContent string
+	if m.switching {
+		mainContent = appStyle.Render(m.profiles.View())
+	} else {
+		s := "\nPress 'x' to switch profiles, 'q' to quit."
+		mainContent = appStyle.Render(s)
+	}
+
+	return lipgloss.JoinVertical(lipgloss.Left, banner, mainContent)
 }
 
 func getARN(profile string) tea.Cmd {
