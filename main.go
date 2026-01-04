@@ -28,15 +28,15 @@ var (
 )
 
 const (
-	profilesPane = iota
-	regionsPane
+	homeView = iota
+	profilesView
+	regionsView
 )
-
 
 type model struct {
 	profiles       list.Model
 	regions        list.Model
-	focusedPane    int
+	currentView    int
 	currentARN     string
 	currentProfile string
 	currentRegion  string
@@ -102,7 +102,7 @@ func newModel() model {
 	m := model{
 		profiles:    l,
 		regions:     r,
-		focusedPane: profilesPane,
+		currentView: homeView,
 		spinner:     s,
 		loading:     true,
 	}
@@ -124,28 +124,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		// Don't match on enter or tab.
-		if msg.String() == "enter" || msg.String() == "tab" {
-			break
-		}
-		switch msg.String() {
-		case "ctrl+c", "q":
-			return m, tea.Quit
-		}
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
 		h, v := appStyle.GetFrameSize()
-
-		// The banner is assumed to take 1 line of vertical space.
-		// appStyle has 1 unit of padding top and 1 unit of padding bottom, so v is 2.
-		// So total vertical space consumed by banner + appStyle padding is 1 + v.
-		// The remaining height is for the profiles list.
 		listHeight := m.height - 1 - v
-		listWidth := m.width/2 - h
+		listWidth := m.width - h
 		m.profiles.SetSize(listWidth, listHeight)
 		m.regions.SetSize(listWidth, listHeight)
+
 	case gotProfilesMsg:
 		m.profiles.SetItems(msg)
 	case gotARNAndRegionMsg:
@@ -162,36 +149,48 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 	}
 
-	// Handle key presses
-	if key, ok := msg.(tea.KeyMsg); ok {
-		switch key.String() {
-		case "tab":
-			if m.focusedPane == profilesPane {
-				m.focusedPane = regionsPane
-			} else {
-				m.focusedPane = profilesPane
+	switch m.currentView {
+	case homeView:
+		if key, ok := msg.(tea.KeyMsg); ok {
+			switch key.String() {
+			case "p":
+				m.currentView = profilesView
+			case "r":
+				m.currentView = regionsView
+			case "q", "ctrl+c":
+				return m, tea.Quit
 			}
-		case "enter":
-			if m.focusedPane == profilesPane {
+		}
+	case profilesView:
+		if key, ok := msg.(tea.KeyMsg); ok {
+			switch key.String() {
+			case "c":
+				m.currentView = homeView
+			case "enter":
 				if i, ok := m.profiles.SelectedItem().(item); ok {
-					m.err = nil // Clear previous error on new selection
+					m.err = nil
 					m.currentProfile = string(i)
 					m.loading = true
-					return m, getARN(m.currentProfile, m.currentRegion)
-				}
-			} else { // regionsPane
-				if i, ok := m.regions.SelectedItem().(item); ok {
-					m.currentRegion = string(i)
-					m.loading = true
+					m.currentView = homeView
 					return m, getARN(m.currentProfile, m.currentRegion)
 				}
 			}
 		}
-	}
-
-	if m.focusedPane == profilesPane {
 		m.profiles, cmd = m.profiles.Update(msg)
-	} else {
+	case regionsView:
+		if key, ok := msg.(tea.KeyMsg); ok {
+			switch key.String() {
+			case "c":
+				m.currentView = homeView
+			case "enter":
+				if i, ok := m.regions.SelectedItem().(item); ok {
+					m.currentRegion = string(i)
+					m.loading = true
+					m.currentView = homeView
+					return m, getARN(m.currentProfile, m.currentRegion)
+				}
+			}
+		}
 		m.regions, cmd = m.regions.Update(msg)
 	}
 
@@ -211,23 +210,17 @@ func (m model) View() string {
 	bannerText := fmt.Sprintf("Profile: %s | ARN: %s | Region: %s", m.currentProfile, arnDisplay, m.currentRegion)
 	banner := bannerStyle.Copy().Align(lipgloss.Left).Width(m.width).Render(bannerText)
 
-	// Set border colors based on focus
-	profileListStyle := lipgloss.NewStyle()
-	regionListStyle := lipgloss.NewStyle()
-
-	if m.focusedPane == profilesPane {
-		profileListStyle = profileListStyle.Border(lipgloss.NormalBorder(), false, false, false, true).BorderForeground(lipgloss.Color("#6fe7d2"))
-	} else {
-		regionListStyle = regionListStyle.Border(lipgloss.NormalBorder(), false, false, false, true).BorderForeground(lipgloss.Color("#6fe7d2"))
+	var mainContent string
+	switch m.currentView {
+	case profilesView:
+		mainContent = appStyle.Render(m.profiles.View())
+	case regionsView:
+		mainContent = appStyle.Render(m.regions.View())
+	default: // homeView
+		mainContent = appStyle.Render("Hello World!")
 	}
 
-	mainContent := lipgloss.JoinHorizontal(
-		lipgloss.Top,
-		profileListStyle.Render(m.profiles.View()),
-		regionListStyle.Render(m.regions.View()),
-	)
-
-	return lipgloss.JoinVertical(lipgloss.Left, banner, appStyle.Render(mainContent))
+	return lipgloss.JoinVertical(lipgloss.Left, banner, mainContent)
 }
 
 func getARN(profile string, region string) tea.Cmd {
