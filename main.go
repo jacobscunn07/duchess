@@ -127,7 +127,12 @@ func (m model) View() string {
 		arnDisplay = m.currentARN
 	}
 
-	banner := bannerStyle.Render(fmt.Sprintf("Profile: %s | ARN: %s", m.currentProfile, arnDisplay))
+	bannerText := fmt.Sprintf("Profile: %s | ARN: %s", m.currentProfile, arnDisplay)
+
+	// To make the banner full-width, we set its width to the model's width (the screen width).
+	// We also explicitly set the alignment to left to ensure text is truncated from the right.
+	// Lipgloss will handle padding the background and truncating the text automatically.
+	banner := bannerStyle.Copy().Align(lipgloss.Left).Width(m.width).Render(bannerText)
 
 	mainContent := appStyle.Render(m.profiles.View())
 
