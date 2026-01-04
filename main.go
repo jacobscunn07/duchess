@@ -27,8 +27,16 @@ var (
 			PaddingRight(1)
 )
 
+const (
+	profilesPane = iota
+	regionsPane
+)
+
+
 type model struct {
 	profiles       list.Model
+	regions        list.Model
+	focusedPane    int
 	currentARN     string
 	currentProfile string
 	currentRegion  string
@@ -84,22 +92,32 @@ func newModel() model {
 		Foreground(lipgloss.Color("#000000")).
 		Padding(0, 1)
 
+	r := list.New(getRegions(), delegate, 0, 0)
+	r.Title = "Select AWS Region"
+	r.Styles.Title = lipgloss.NewStyle().
+		Background(lipgloss.Color("#6fe7d2")).
+		Foreground(lipgloss.Color("#000000")).
+		Padding(0, 1)
+
 	m := model{
-		profiles: l,
-		spinner:  s,
-		loading:  true,
+		profiles:    l,
+		regions:     r,
+		focusedPane: profilesPane,
+		spinner:     s,
+		loading:     true,
 	}
 
 	m.currentProfile = os.Getenv("AWS_PROFILE")
 	if m.currentProfile == "" {
 		m.currentProfile = "default"
 	}
+	m.currentRegion = "us-east-1"
 
 	return m
 }
 
 func (m model) Init() tea.Cmd {
-	return tea.Batch(m.spinner.Tick, getProfiles(), getARN(m.currentProfile))
+	return tea.Batch(m.spinner.Tick, getProfiles(), getARN(m.currentProfile, m.currentRegion))
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -107,29 +125,27 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		// Error is now cleared only on 'enter'
+		// Don't match on enter or tab.
+		if msg.String() == "enter" || msg.String() == "tab" {
+			break
+		}
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
-		case "enter":
-			if i, ok := m.profiles.SelectedItem().(item); ok {
-				m.err = nil // Clear previous error on new selection
-				m.currentProfile = string(i)
-				m.loading = true
-				return m, getARN(m.currentProfile)
-			}
-			return m, nil
 		}
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
 		h, v := appStyle.GetFrameSize()
-		
+
 		// The banner is assumed to take 1 line of vertical space.
 		// appStyle has 1 unit of padding top and 1 unit of padding bottom, so v is 2.
 		// So total vertical space consumed by banner + appStyle padding is 1 + v.
 		// The remaining height is for the profiles list.
-		m.profiles.SetSize(m.width-h, m.height - 1 - v) // Subtract 1 for banner height
+		listHeight := m.height - 1 - v
+		listWidth := m.width/2 - h
+		m.profiles.SetSize(listWidth, listHeight)
+		m.regions.SetSize(listWidth, listHeight)
 	case gotProfilesMsg:
 		m.profiles.SetItems(msg)
 	case gotARNAndRegionMsg:
@@ -146,7 +162,39 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 	}
 
-	m.profiles, cmd = m.profiles.Update(msg)
+	// Handle key presses
+	if key, ok := msg.(tea.KeyMsg); ok {
+		switch key.String() {
+		case "tab":
+			if m.focusedPane == profilesPane {
+				m.focusedPane = regionsPane
+			} else {
+				m.focusedPane = profilesPane
+			}
+		case "enter":
+			if m.focusedPane == profilesPane {
+				if i, ok := m.profiles.SelectedItem().(item); ok {
+					m.err = nil // Clear previous error on new selection
+					m.currentProfile = string(i)
+					m.loading = true
+					return m, getARN(m.currentProfile, m.currentRegion)
+				}
+			} else { // regionsPane
+				if i, ok := m.regions.SelectedItem().(item); ok {
+					m.currentRegion = string(i)
+					m.loading = true
+					return m, getARN(m.currentProfile, m.currentRegion)
+				}
+			}
+		}
+	}
+
+	if m.focusedPane == profilesPane {
+		m.profiles, cmd = m.profiles.Update(msg)
+	} else {
+		m.regions, cmd = m.regions.Update(msg)
+	}
+
 	return m, cmd
 }
 
@@ -161,20 +209,30 @@ func (m model) View() string {
 	}
 
 	bannerText := fmt.Sprintf("Profile: %s | ARN: %s | Region: %s", m.currentProfile, arnDisplay, m.currentRegion)
-
-	// To make the banner full-width, we set its width to the model's width (the screen width).
-	// We also explicitly set the alignment to left to ensure text is truncated from the right.
-	// Lipgloss will handle padding the background and truncating the text automatically.
 	banner := bannerStyle.Copy().Align(lipgloss.Left).Width(m.width).Render(bannerText)
 
-	mainContent := appStyle.Render(m.profiles.View())
+	// Set border colors based on focus
+	profileListStyle := lipgloss.NewStyle()
+	regionListStyle := lipgloss.NewStyle()
 
-	return lipgloss.JoinVertical(lipgloss.Left, banner, mainContent)
+	if m.focusedPane == profilesPane {
+		profileListStyle = profileListStyle.Border(lipgloss.NormalBorder(), false, false, false, true).BorderForeground(lipgloss.Color("#6fe7d2"))
+	} else {
+		regionListStyle = regionListStyle.Border(lipgloss.NormalBorder(), false, false, false, true).BorderForeground(lipgloss.Color("#6fe7d2"))
+	}
+
+	mainContent := lipgloss.JoinHorizontal(
+		lipgloss.Top,
+		profileListStyle.Render(m.profiles.View()),
+		regionListStyle.Render(m.regions.View()),
+	)
+
+	return lipgloss.JoinVertical(lipgloss.Left, banner, appStyle.Render(mainContent))
 }
 
-func getARN(profile string) tea.Cmd {
+func getARN(profile string, region string) tea.Cmd {
 	return func() tea.Msg {
-		cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithSharedConfigProfile(profile))
+		cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithSharedConfigProfile(profile), config.WithRegion(region))
 		if err != nil {
 			return errMsg{err}
 		}
@@ -193,6 +251,22 @@ type item string
 func (i item) Title() string       { return string(i) }
 func (i item) Description() string { return "" }
 func (i item) FilterValue() string { return string(i) }
+
+func getRegions() []list.Item {
+	regions := []string{
+		"us-east-1", "us-east-2", "us-west-1", "us-west-2",
+		"af-south-1", "ap-east-1", "ap-south-1", "ap-northeast-1",
+		"ap-northeast-2", "ap-northeast-3", "ap-southeast-1", "ap-southeast-2",
+		"ca-central-1", "eu-central-1", "eu-west-1", "eu-west-2",
+		"eu-west-3", "eu-north-1", "eu-south-1", "me-south-1",
+		"sa-east-1",
+	}
+	items := make([]list.Item, len(regions))
+	for i, r := range regions {
+		items[i] = item(r)
+	}
+	return items
+}
 
 func getProfiles() tea.Cmd {
 	return func() tea.Msg {
