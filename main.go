@@ -32,7 +32,6 @@ type model struct {
 	currentARN     string
 	currentProfile string
 	loading        bool
-	switching      bool
 	spinner        spinner.Model
 	err            error
 	width          int
@@ -76,23 +75,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		// Any keypress will clear the error
-		if m.err != nil {
-			m.err = nil
-		}
+		// Error is now cleared only on 'enter'
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
-		case "x":
-			m.switching = !m.switching
-			return m, nil
 		case "enter":
-			if m.switching {
-				if i, ok := m.profiles.SelectedItem().(item); ok {
-					m.currentProfile = string(i)
-					m.loading = true
-					return m, getARN(m.currentProfile)
-				}
+			if i, ok := m.profiles.SelectedItem().(item); ok {
+				m.err = nil // Clear previous error on new selection
+				m.currentProfile = string(i)
+				m.loading = true
+				return m, getARN(m.currentProfile)
 			}
 			return m, nil
 		}
@@ -100,29 +92,28 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 		h, v := appStyle.GetFrameSize()
-		m.profiles.SetSize(m.width-h, m.height-v)
+		
+		// The banner is assumed to take 1 line of vertical space.
+		// appStyle has 1 unit of padding top and 1 unit of padding bottom, so v is 2.
+		// So total vertical space consumed by banner + appStyle padding is 1 + v.
+		// The remaining height is for the profiles list.
+		m.profiles.SetSize(m.width-h, m.height - 1 - v) // Subtract 1 for banner height
 	case gotProfilesMsg:
 		m.profiles.SetItems(msg)
 	case gotARNMsg:
 		m.loading = false
 		m.currentARN = string(msg)
 		m.err = nil // Clear any previous error
-		m.switching = false // Set switching to false here, when ARN is successfully fetched
 	case errMsg:
 		m.err = msg
 		m.loading = false
-		m.switching = false // Go back to the main view on error
 		return m, nil
 	case spinner.TickMsg:
 		m.spinner, cmd = m.spinner.Update(msg)
 		return m, cmd
 	}
 
-	if m.switching {
-		m.profiles, cmd = m.profiles.Update(msg)
-		return m, cmd
-	}
-
+	m.profiles, cmd = m.profiles.Update(msg)
 	return m, cmd
 }
 
@@ -138,13 +129,7 @@ func (m model) View() string {
 
 	banner := bannerStyle.Render(fmt.Sprintf("Profile: %s | ARN: %s", m.currentProfile, arnDisplay))
 
-	var mainContent string
-	if m.switching {
-		mainContent = appStyle.Render(m.profiles.View())
-	} else {
-		s := "\nPress 'x' to switch profiles, 'q' to quit."
-		mainContent = appStyle.Render(s)
-	}
+	mainContent := appStyle.Render(m.profiles.View())
 
 	return lipgloss.JoinVertical(lipgloss.Left, banner, mainContent)
 }
