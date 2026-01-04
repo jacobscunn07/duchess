@@ -49,8 +49,36 @@ func newModel() model {
 	s.Spinner = spinner.Dot
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 
-	l := list.New(nil, list.NewDefaultDelegate(), 0, 0)
+	// Define styles for the list delegate.
+	delegate := list.NewDefaultDelegate()
+
+	// Style for normal (unselected) items.
+	delegate.Styles.NormalTitle = lipgloss.NewStyle().
+		Foreground(lipgloss.AdaptiveColor{Light: "#1A1A1A", Dark: "#DDD"}).
+		PaddingLeft(2) // Indent to align with selected item's border.
+
+	// Style for selected items.
+	delegate.Styles.SelectedTitle = lipgloss.NewStyle().
+		Background(lipgloss.Color("#6fe7d2")). // Match banner background.
+		Foreground(lipgloss.Color("#000000")). // Match banner foreground.
+		PaddingLeft(1).                        // Indent one space.
+		BorderLeft(true).
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("#000000")) // Match banner foreground for the border.
+
+	// Since we don't use descriptions, we can clear their styles.
+	// This prevents any lingering styling (like a border) from appearing.
+	delegate.Styles.NormalDesc = lipgloss.NewStyle()
+	delegate.Styles.SelectedDesc = lipgloss.NewStyle()
+
+	l := list.New(nil, delegate, 0, 0)
 	l.Title = "Select AWS Profile"
+
+	// Style for the list title.
+	l.Styles.Title = lipgloss.NewStyle().
+		Background(lipgloss.Color("#6fe7d2")).
+		Foreground(lipgloss.Color("#000000")).
+		Padding(0, 1)
 
 	m := model{
 		profiles: l,
