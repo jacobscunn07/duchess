@@ -19,12 +19,17 @@ import (
 )
 
 var (
-	appStyle    = lipgloss.NewStyle().Padding(1, 2)
-	bannerStyle = lipgloss.NewStyle().
+	appStyle    = lipgloss.NewStyle().Padding(1, 2).Background(lipgloss.Color("#3e3e3e"))
+	bannerStylePrimary = lipgloss.NewStyle().
 			Background(lipgloss.Color("#6fe7d2")).
 			Foreground(lipgloss.Color("#000000")).
 			PaddingLeft(1).
 			PaddingRight(1)
+	bannerStyleAlternate = lipgloss.NewStyle().
+				Background(lipgloss.Color("#3e3e3e")).
+				Foreground(lipgloss.Color("#ffffff")).
+				PaddingLeft(1).
+				PaddingRight(1)
 )
 
 const (
@@ -36,10 +41,11 @@ const (
 type model struct {
 	profiles       list.Model
 	regions        list.Model
-	currentView    int
-	currentARN     string
-	currentProfile string
-	currentRegion  string
+	currentView      int
+	currentARN       string
+	currentAccountID string
+	currentProfile   string
+	currentRegion    string
 	loading        bool
 	spinner        spinner.Model
 	err            error
@@ -47,9 +53,10 @@ type model struct {
 	height         int
 }
 
-type gotARNAndRegionMsg struct {
-	arn    string
-	region string
+type gotIdentityMsg struct {
+	arn       string
+	region    string
+	accountID string
 }
 type gotProfilesMsg []list.Item
 type errMsg struct{ err error }
@@ -135,10 +142,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case gotProfilesMsg:
 		m.profiles.SetItems(msg)
-	case gotARNAndRegionMsg:
+	case gotIdentityMsg:
 		m.loading = false
 		m.currentARN = msg.arn
 		m.currentRegion = msg.region
+		m.currentAccountID = msg.accountID
 		m.err = nil // Clear any previous error
 	case errMsg:
 		m.err = msg
@@ -207,17 +215,27 @@ func (m model) View() string {
 		arnDisplay = m.currentARN
 	}
 
-	bannerText := fmt.Sprintf("Profile: %s | ARN: %s | Region: %s", m.currentProfile, arnDisplay, m.currentRegion)
-	banner := bannerStyle.Copy().Align(lipgloss.Left).Width(m.width).Render(bannerText)
+	profilePart := bannerStylePrimary.Render(m.currentProfile)
+	accountIDPart := bannerStyleAlternate.Render(m.currentAccountID)
+	regionPart := bannerStylePrimary.Render(m.currentRegion)
+	arnPart := bannerStyleAlternate.Render(arnDisplay)
+
+	leftSide := lipgloss.JoinHorizontal(lipgloss.Top, profilePart, accountIDPart, regionPart, arnPart)
+	remainingWidth := m.width - lipgloss.Width(leftSide)
+	fillerPart := bannerStylePrimary.Copy().Width(remainingWidth).Render("")
+
+	banner := lipgloss.JoinHorizontal(lipgloss.Top, leftSide, fillerPart)
 
 	var mainContent string
+	mainContentStyle := appStyle.Copy().Width(m.width).Height(m.height - 1)
+
 	switch m.currentView {
 	case profilesView:
-		mainContent = appStyle.Render(m.profiles.View())
+		mainContent = mainContentStyle.Render(m.profiles.View())
 	case regionsView:
-		mainContent = appStyle.Render(m.regions.View())
+		mainContent = mainContentStyle.Render(m.regions.View())
 	default: // homeView
-		mainContent = appStyle.Render("Hello World!")
+		mainContent = mainContentStyle.Render("Hello World!")
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Left, banner, mainContent)
@@ -235,7 +253,7 @@ func getARN(profile string, region string) tea.Cmd {
 		if err != nil {
 			return errMsg{err}
 		}
-		return gotARNAndRegionMsg{arn: *identity.Arn, region: cfg.Region}
+		return gotIdentityMsg{arn: *identity.Arn, region: cfg.Region, accountID: *identity.Account}
 	}
 }
 
