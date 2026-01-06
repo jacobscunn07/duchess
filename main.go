@@ -235,7 +235,18 @@ func (m model) View() string {
 	case regionsView:
 		mainContent = mainContentStyle.Render(m.regions.View())
 	default: // homeView
-		mainContent = mainContentStyle.Render("Hello World!")
+
+mainContent = mainContentStyle.Render(
+    "                                                 \n" +
+		"     █                █                          \n" +
+		"  ▄▄▄█  ▄   ▄   ▄▄▄   █ ▄▄    ▄▄▄    ▄▄▄    ▄▄▄  \n" +
+		" █▀ ▀█  █   █  █▀  ▀  █▀  █  █▀  █  █   ▀  █   ▀ \n" +
+		" █   █  █   █  █      █   █  █▀▀▀▀   ▀▀▀▄   ▀▀▀▄ \n" +
+		" ▀█▄██  ▀▄▄▀█  ▀█▄▄▀  █   █  ▀█▄▄▀  ▀▄▄▄▀  ▀▄▄▄▀ \n" +
+		"                                                 \n" +
+		"                                                  \n",
+)
+
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Left, banner, mainContent)
