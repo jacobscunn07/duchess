@@ -12,13 +12,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// newTestCmd creates a cobra.Command with the three flags registered,
-// mirroring the real root command flag setup.
+// newTestCmd creates a cobra.Command with the three flags registered as local
+// flags. Using Flags() (not PersistentFlags()) for unit tests allows
+// cmd.Flags().Set() and cmd.Flags().Changed() to work correctly without
+// needing a full cobra Execute() run. The real root command uses
+// PersistentFlags(), but cobra merges them so that cmd.Flags().Changed()
+// sees persistent flags during an actual Execute() call.
 func newTestCmd() *cobra.Command {
 	cmd := &cobra.Command{Use: "duchess"}
-	cmd.PersistentFlags().String("profile", "", "AWS profile name from ~/.aws/config")
-	cmd.PersistentFlags().String("region", "", "AWS region (e.g. us-east-1)")
-	cmd.PersistentFlags().Int("refresh-interval", 2, "Auto-refresh interval in seconds (default 2)")
+	cmd.Flags().String("profile", "", "AWS profile name from ~/.aws/config")
+	cmd.Flags().String("region", "", "AWS region (e.g. us-east-1)")
+	cmd.Flags().Int("refresh-interval", 2, "Auto-refresh interval in seconds (default 2)")
 	return cmd
 }
 
