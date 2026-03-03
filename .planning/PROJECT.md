@@ -67,6 +67,7 @@ Navigate your AWS resources across accounts and regions in one terminal session 
 ## Constraints
 
 - **Tech stack**: Go — existing project, already committed
+- **TUI framework**: Charmbracelet ecosystem — Bubble Tea (Elm-style MVU), Lipgloss (styling), Bubbles (pre-built components)
 - **Safety**: Read-only operations only in v1 — no writes, no deletes, no mutations
 - **Config location**: `~/.duchess/config` — follows XDG-adjacent conventions
 - **Auth scope**: Named profiles, role assumption, and SSO for v1; MFA deferred
@@ -77,6 +78,7 @@ Navigate your AWS resources across accounts and regions in one terminal session 
 |----------|-----------|---------|
 | Read-only v1 | Safety first — open source users should trust the tool before it has write access | — Pending |
 | Go | Existing project; Go is the dominant language for TUI tools (k9s, lazygit) | — Pending |
+| Charmbracelet ecosystem (Bubble Tea + Lipgloss + Bubbles) | Modern, actively maintained Go TUI stack; Elm-style architecture is composable; Lipgloss handles styling cleanly | — Pending |
 | S3 is global, region switch only affects regional services | S3 buckets span regions; ECS clusters are regional — region picker filters regional services | — Pending |
 
 ---
