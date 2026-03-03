@@ -111,48 +111,48 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | — | Pending |
-| AUTH-02 | — | Pending |
-| AUTH-03 | — | Pending |
-| AUTH-04 | — | Pending |
-| AUTH-05 | — | Pending |
-| AUTH-06 | — | Pending |
-| NAV-01 | — | Pending |
-| NAV-02 | — | Pending |
-| NAV-03 | — | Pending |
-| NAV-04 | — | Pending |
-| NAV-05 | — | Pending |
-| NAV-06 | — | Pending |
-| NAV-07 | — | Pending |
-| STAT-01 | — | Pending |
-| STAT-02 | — | Pending |
-| STAT-03 | — | Pending |
-| STAT-04 | — | Pending |
-| STAT-05 | — | Pending |
-| STAT-06 | — | Pending |
-| S3-01 | — | Pending |
-| S3-02 | — | Pending |
-| S3-03 | — | Pending |
-| S3-04 | — | Pending |
-| S3-05 | — | Pending |
-| ECS-01 | — | Pending |
-| ECS-02 | — | Pending |
-| ECS-03 | — | Pending |
-| ECS-04 | — | Pending |
-| ECS-05 | — | Pending |
-| ECS-06 | — | Pending |
-| CONF-01 | — | Pending |
-| CONF-02 | — | Pending |
-| CONF-03 | — | Pending |
-| CONF-04 | — | Pending |
-| CONF-05 | — | Pending |
-| CONF-06 | — | Pending |
+| AUTH-01 | Phase 5 | Pending |
+| AUTH-02 | Phase 1 | Pending |
+| AUTH-03 | Phase 1 | Pending |
+| AUTH-04 | Phase 1 | Pending |
+| AUTH-05 | Phase 5 | Pending |
+| AUTH-06 | Phase 1 | Pending |
+| NAV-01 | Phase 3 | Pending |
+| NAV-02 | Phase 3 | Pending |
+| NAV-03 | Phase 3 | Pending |
+| NAV-04 | Phase 2 | Pending |
+| NAV-05 | Phase 3 | Pending |
+| NAV-06 | Phase 2 | Pending |
+| NAV-07 | Phase 2 | Pending |
+| STAT-01 | Phase 2 | Pending |
+| STAT-02 | Phase 2 | Pending |
+| STAT-03 | Phase 2 | Pending |
+| STAT-04 | Phase 2 | Pending |
+| STAT-05 | Phase 2 | Pending |
+| STAT-06 | Phase 2 | Pending |
+| S3-01 | Phase 3 | Pending |
+| S3-02 | Phase 3 | Pending |
+| S3-03 | Phase 3 | Pending |
+| S3-04 | Phase 3 | Pending |
+| S3-05 | Phase 3 | Pending |
+| ECS-01 | Phase 4 | Pending |
+| ECS-02 | Phase 4 | Pending |
+| ECS-03 | Phase 4 | Pending |
+| ECS-04 | Phase 4 | Pending |
+| ECS-05 | Phase 4 | Pending |
+| ECS-06 | Phase 4 | Pending |
+| CONF-01 | Phase 1 | Pending |
+| CONF-02 | Phase 1 | Pending |
+| CONF-03 | Phase 1 | Pending |
+| CONF-04 | Phase 1 | Pending |
+| CONF-05 | Phase 1 | Pending |
+| CONF-06 | Phase 1 | Pending |
 
 **Coverage:**
 - v1 requirements: 36 total
-- Mapped to phases: 0
-- Unmapped: 36 ⚠️
+- Mapped to phases: 36
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-02*
-*Last updated: 2026-03-02 after initial definition*
+*Last updated: 2026-03-02 after roadmap creation*
