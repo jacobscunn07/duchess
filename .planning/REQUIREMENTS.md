@@ -54,12 +54,12 @@ Requirements for initial release. All operations are read-only.
 
 ### Configuration
 
-- [ ] **CONF-01**: Screen auto-refreshes at a configurable interval (default: 2 seconds)
-- [ ] **CONF-02**: User can set the refresh interval via CLI flag (--refresh-interval)
-- [ ] **CONF-03**: User can set the default profile via CLI flag (--profile)
-- [ ] **CONF-04**: User can set the default region via CLI flag (--region)
-- [ ] **CONF-05**: App loads configuration from ~/.duchess/config file on startup
-- [ ] **CONF-06**: CLI flags take precedence over config file values
+- [x] **CONF-01**: Screen auto-refreshes at a configurable interval (default: 2 seconds)
+- [x] **CONF-02**: User can set the refresh interval via CLI flag (--refresh-interval)
+- [x] **CONF-03**: User can set the default profile via CLI flag (--profile)
+- [x] **CONF-04**: User can set the default region via CLI flag (--region)
+- [x] **CONF-05**: App loads configuration from ~/.duchess/config file on startup
+- [x] **CONF-06**: CLI flags take precedence over config file values
 
 ## v2 Requirements
 
@@ -141,12 +141,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ECS-04 | Phase 4 | Pending |
 | ECS-05 | Phase 4 | Pending |
 | ECS-06 | Phase 4 | Pending |
-| CONF-01 | Phase 1 | Pending |
-| CONF-02 | Phase 1 | Pending |
-| CONF-03 | Phase 1 | Pending |
-| CONF-04 | Phase 1 | Pending |
-| CONF-05 | Phase 1 | Pending |
-| CONF-06 | Phase 1 | Pending |
+| CONF-01 | Phase 1 | Complete |
+| CONF-02 | Phase 1 | Complete |
+| CONF-03 | Phase 1 | Complete |
+| CONF-04 | Phase 1 | Complete |
+| CONF-05 | Phase 1 | Complete |
+| CONF-06 | Phase 1 | Complete |
 
 **Coverage:**
 - v1 requirements: 36 total

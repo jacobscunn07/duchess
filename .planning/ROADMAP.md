@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — cobra CLI skeleton + yaml config loading with flag-over-file precedence
+- [x] 01-01-PLAN.md — cobra CLI skeleton + yaml config loading with flag-over-file precedence
 - [ ] 01-02-PLAN.md — AWS session factory (named/role/SSO) + STS GetCallerIdentity + credential error taxonomy
 
 ### Phase 2: UI Shell
@@ -106,7 +106,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/2 | Not started | - |
+| 1. Foundation | 1/2 | In progress | - |
 | 2. UI Shell | 0/2 | Not started | - |
 | 3. S3 Browsing | 0/2 | Not started | - |
 | 4. ECS Browsing | 0/2 | Not started | - |
