@@ -30,11 +30,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Running with an SSO profile returns the SSO session's caller identity; when the SSO token is expired, the binary exits with a message containing the exact `aws sso login --profile <name>` command to run
   4. `~/.duchess/config` is loaded on startup; CLI flags (`--profile`, `--region`, `--refresh-interval`) override file values
   5. Missing or invalid credentials produce a human-readable error message (not a stack trace) with a concrete remediation step
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: Add cobra CLI skeleton with --profile, --region, --refresh-interval flags; wire config file loading (yaml.v3) with flag-over-file precedence
-- [ ] 01-02: Implement AWS session factory supporting named, role-assumption, and SSO profiles via aws-sdk-go-v2/config LoadDefaultConfig; add STS GetCallerIdentity call; add credential error taxonomy with typed error messages
+- [ ] 01-01-PLAN.md — cobra CLI skeleton + yaml config loading with flag-over-file precedence
+- [ ] 01-02-PLAN.md — AWS session factory (named/role/SSO) + STS GetCallerIdentity + credential error taxonomy
 
 ### Phase 2: UI Shell
 **Goal**: A Bubble Tea TUI that launches cleanly, displays real AWS identity in a persistent status bar, handles terminal resize, and exits gracefully — no resource panels yet
