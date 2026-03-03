@@ -12,7 +12,7 @@ duchess is built in five phases that follow the natural dependency graph of the 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - Working Go binary that authenticates across all three AWS profile types, loads config, and returns caller identity from STS
+- [x] **Phase 1: Foundation** - Working Go binary that authenticates across all three AWS profile types, loads config, and returns caller identity from STS (completed 2026-03-03)
 - [ ] **Phase 2: UI Shell** - Bubble Tea program with persistent status bar, loading states, and clean terminal handling — no resource panels yet
 - [ ] **Phase 3: S3 Browsing** - Full S3 navigation from bucket list through prefix hierarchy to object metadata, with live refresh and filter
 - [ ] **Phase 4: ECS Browsing** - Full ECS navigation from cluster list through service detail to task detail, with lazy hierarchical fetch and live refresh
@@ -106,7 +106,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 1/2 | In progress | - |
+| 1. Foundation | 2/2 | Complete   | 2026-03-03 |
 | 2. UI Shell | 0/2 | Not started | - |
 | 3. S3 Browsing | 0/2 | Not started | - |
 | 4. ECS Browsing | 0/2 | Not started | - |

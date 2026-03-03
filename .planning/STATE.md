@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 ## Current Position
 
 Phase: 1 of 5 (Foundation)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-03-03 — Plan 01-01 complete: cobra CLI skeleton and config loading
+Plan: 2 of 2 in current phase (COMPLETE)
+Status: Phase 1 complete — ready for Phase 2
+Last activity: 2026-03-03 — Plan 01-02 complete: AWS session factory + credential error taxonomy
 
-Progress: [█░░░░░░░░░] 10%
+Progress: [██░░░░░░░░] 20%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 4 minutes
-- Total execution time: 0.07 hours
+- Total plans completed: 2
+- Average duration: 3.5 minutes
+- Total execution time: 0.12 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| Phase 1 | 1/2 | 4 min | 4 min |
+| Phase 1 | 2/2 | 7 min | 3.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (4 min)
-- Trend: —
+- Last 5 plans: 01-01 (4 min), 01-02 (3 min)
+- Trend: on pace
 
 *Updated after each plan completion*
 
@@ -47,6 +47,8 @@ Recent decisions affecting current work:
 - Research: Phase 5 SSO error UX may warrant a focused research spike before planning (token expiry vs. role expiry vs. network failure have different recovery paths)
 - 01-01: cobra unit tests use cmd.Flags() (not PersistentFlags()) to allow Changed() to work without full Execute() — production rootCmd uses PersistentFlags() as intended
 - 01-01: AWS SDK deps kept in go.mod after Plan 01 even though not imported yet — Plan 02 will import them directly
+- 01-02: package named "session" (not "aws") to avoid shadowing SDK's top-level "aws" package — imported with alias in cmd/root.go
+- 01-02: ssocreds.InvalidTokenError checked BEFORE smithy.APIError in ClassifyCredentialError — order is critical since InvalidTokenError is not a smithy.APIError implementor
 
 ### Pending Todos
 
@@ -59,5 +61,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 01-01-PLAN.md — cobra CLI skeleton + config loading; ready to run Plan 01-02
+Stopped at: Completed 01-02-PLAN.md — AWS session factory + STS GetCallerIdentity + credential error taxonomy; Phase 1 complete
 Resume file: None
