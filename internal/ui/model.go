@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/lipgloss"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/jacobscunn07/duchess/internal/config"
 	session "github.com/jacobscunn07/duchess/internal/aws"
+	s3panel "github.com/jacobscunn07/duchess/internal/ui/s3"
 )
 
 // state represents the loading state of the root model.
@@ -27,6 +29,7 @@ const (
 type rootModel struct {
 	ctx     context.Context
 	cfg     *config.Config
+	awsCfg  aws.Config
 	width   int
 	height  int
 	state   state
@@ -35,6 +38,7 @@ type rootModel struct {
 	account string
 	arn     string
 	err     error
+	s3Panel s3panel.Model
 }
 
 // NewRootModel constructs a rootModel with safe default dimensions.
@@ -79,6 +83,11 @@ func (m rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		if m.state == stateReady {
+			var cmd tea.Cmd
+			m.s3Panel, cmd = m.s3Panel.Update(msg)
+			return m, cmd
+		}
 		return m, nil
 
 	case tea.KeyMsg:
@@ -90,8 +99,16 @@ func (m rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case identityLoadedMsg:
 		m.account = msg.account
 		m.arn = msg.arn
+		m.awsCfg = msg.cfg
 		m.state = stateReady
-		return m, nil
+		// Compute content height (excluding status bar) for s3Panel sizing
+		statusBar := renderStatusBar(m)
+		contentH := m.height - lipgloss.Height(statusBar)
+		if contentH < 1 {
+			contentH = 1
+		}
+		m.s3Panel = s3panel.NewModel(m.ctx, m.awsCfg, m.width, contentH)
+		return m, m.s3Panel.Init()
 
 	case identityErrMsg:
 		m.err = msg.err
@@ -109,7 +126,20 @@ func (m rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.spinner, cmd = m.spinner.Update(msg)
 			return m, cmd
 		}
+		// In stateReady, forward spinner ticks to s3Panel (for refresh spinner)
+		if m.state == stateReady {
+			var cmd tea.Cmd
+			m.s3Panel, cmd = m.s3Panel.Update(msg)
+			return m, cmd
+		}
 		return m, nil
+	}
+
+	// Forward all remaining messages to s3Panel when in stateReady
+	if m.state == stateReady {
+		var cmd tea.Cmd
+		m.s3Panel, cmd = m.s3Panel.Update(msg)
+		return m, cmd
 	}
 
 	return m, nil
@@ -147,7 +177,7 @@ func (m rootModel) contentView() string {
 	case stateError:
 		return lipgloss.NewStyle().Width(m.width).Padding(1, 2).Render(m.err.Error())
 	default: // stateReady
-		return lipgloss.NewStyle().Width(m.width).Render("")
+		return m.s3Panel.View()
 	}
 }
 
@@ -165,7 +195,7 @@ func fetchIdentityCmd(ctx context.Context, profile, region string) tea.Cmd {
 		if err != nil {
 			return identityErrMsg{err: session.ClassifyCredentialError(err, profile)}
 		}
-		return identityLoadedMsg{account: account, arn: arn}
+		return identityLoadedMsg{account: account, arn: arn, cfg: awsCfg}
 	}
 }
 

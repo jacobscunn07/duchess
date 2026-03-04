@@ -1,11 +1,16 @@
 package ui
 
-import "time"
+import (
+	"time"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+)
 
 // identityLoadedMsg is sent when STS GetCallerIdentity succeeds.
 type identityLoadedMsg struct {
 	account string
 	arn     string
+	cfg     aws.Config // AWS config used for the session — passed to s3Panel on init
 }
 
 // identityErrMsg is sent when STS GetCallerIdentity fails.
