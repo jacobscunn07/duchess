@@ -1,5 +1,5 @@
 ---
-status: diagnosed
+status: resolved
 phase: 03-s3-browsing
 source: 03-01-SUMMARY.md, 03-02-SUMMARY.md
 started: 2026-03-04T20:30:00Z
@@ -73,7 +73,7 @@ skipped: 0
 ## Gaps
 
 - truth: "Pressing / from the bucket list opens a filter bar with a 'Filter: ' prompt"
-  status: failed
+  status: resolved
   reason: "User reported: Filter only opens when inside a bucket. It does not appear on the bucket list screen."
   severity: major
   test: 8
