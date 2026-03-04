@@ -2,7 +2,6 @@ package cmd
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	session "github.com/jacobscunn07/duchess/internal/aws"
 	"github.com/jacobscunn07/duchess/internal/config"
 	"github.com/jacobscunn07/duchess/internal/ui"
 	"github.com/spf13/cobra"
@@ -28,20 +27,17 @@ func init() {
 }
 
 // runRoot is the RunE handler for the root command.
-// Loads config, creates an AWS config, then launches the Bubble Tea TUI.
-// STS GetCallerIdentity is performed asynchronously inside the TUI via fetchIdentityCmd.
+// Loads duchess config from file + CLI flags, then launches the Bubble Tea TUI.
+// AWS config loading and STS GetCallerIdentity are performed asynchronously inside
+// the TUI via fetchIdentityCmd — any credential or profile errors render as inline
+// TUI errors rather than pre-launch cobra errors.
 func runRoot(cmd *cobra.Command, args []string) error {
 	cfg, err := config.LoadConfig(cmd)
 	if err != nil {
 		return err
 	}
 
-	awsCfg, err := session.NewAWSConfig(cmd.Context(), cfg.Profile, cfg.Region)
-	if err != nil {
-		return err
-	}
-
-	model := ui.NewRootModel(cmd.Context(), cfg, awsCfg)
+	model := ui.NewRootModel(cmd.Context(), cfg)
 	p := tea.NewProgram(model, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		return err

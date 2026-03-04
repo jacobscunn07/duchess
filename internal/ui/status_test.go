@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/jacobscunn07/duchess/internal/config"
 	"github.com/stretchr/testify/assert"
@@ -20,8 +19,7 @@ func buildTestModelForStatus(width, height int, s state, account, arn string) ro
 		Region:          "us-east-1",
 		RefreshInterval: 30,
 	}
-	awsCfg := aws.Config{}
-	m := NewRootModel(context.Background(), cfg, awsCfg)
+	m := NewRootModel(context.Background(), cfg)
 	m.width = width
 	m.height = height
 	m.state = s

@@ -5,7 +5,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/lipgloss"
@@ -27,7 +26,6 @@ const (
 // rootModel is the top-level Bubble Tea model for the duchess TUI.
 type rootModel struct {
 	ctx     context.Context
-	awsCfg  aws.Config
 	cfg     *config.Config
 	width   int
 	height  int
@@ -41,7 +39,10 @@ type rootModel struct {
 
 // NewRootModel constructs a rootModel with safe default dimensions.
 // It applies NO_COLOR guard if the env var is set.
-func NewRootModel(ctx context.Context, cfg *config.Config, awsCfg aws.Config) rootModel {
+// The AWS config is NOT loaded here — it is loaded lazily inside fetchIdentityCmd
+// so that any profile/credential errors surface as inline TUI errors rather than
+// pre-launch cobra errors.
+func NewRootModel(ctx context.Context, cfg *config.Config) rootModel {
 	// NO_COLOR guard: disable ANSI color codes when env var is set.
 	if os.Getenv("NO_COLOR") != "" {
 		lipgloss.SetColorProfile(termenv.Ascii)
@@ -54,7 +55,6 @@ func NewRootModel(ctx context.Context, cfg *config.Config, awsCfg aws.Config) ro
 
 	return rootModel{
 		ctx:     ctx,
-		awsCfg:  awsCfg,
 		cfg:     cfg,
 		width:   80,
 		height:  24,
@@ -67,7 +67,7 @@ func NewRootModel(ctx context.Context, cfg *config.Config, awsCfg aws.Config) ro
 // Init implements tea.Model. Returns a batch of startup commands.
 func (m rootModel) Init() tea.Cmd {
 	return tea.Batch(
-		fetchIdentityCmd(m.ctx, m.awsCfg, m.cfg.Profile),
+		fetchIdentityCmd(m.ctx, m.cfg.Profile, m.cfg.Region),
 		m.spinner.Tick,
 		tickCmd(),
 	)
@@ -151,10 +151,16 @@ func (m rootModel) contentView() string {
 	}
 }
 
-// fetchIdentityCmd wraps session.GetCallerIdentity asynchronously.
+// fetchIdentityCmd loads the AWS config and calls STS GetCallerIdentity asynchronously.
+// Loading the AWS config here (instead of in cmd/root.go) ensures that profile-not-found
+// and other config errors surface as inline TUI errors rather than pre-launch cobra errors.
 // Always returns a closure that sends either identityLoadedMsg or identityErrMsg.
-func fetchIdentityCmd(ctx context.Context, awsCfg aws.Config, profile string) tea.Cmd {
+func fetchIdentityCmd(ctx context.Context, profile, region string) tea.Cmd {
 	return func() tea.Msg {
+		awsCfg, err := session.NewAWSConfig(ctx, profile, region)
+		if err != nil {
+			return identityErrMsg{err: err}
+		}
 		account, arn, err := session.GetCallerIdentity(ctx, awsCfg)
 		if err != nil {
 			return identityErrMsg{err: session.ClassifyCredentialError(err, profile)}

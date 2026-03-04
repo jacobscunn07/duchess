@@ -9,7 +9,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/jacobscunn07/duchess/internal/config"
 )
 
@@ -20,8 +19,7 @@ func newTestModel() rootModel {
 		Region:          "us-east-1",
 		RefreshInterval: 30,
 	}
-	awsCfg := aws.Config{}
-	return NewRootModel(context.Background(), cfg, awsCfg)
+	return NewRootModel(context.Background(), cfg)
 }
 
 // TestNewRootModelDefaultDimensions verifies constructor sets safe default dimensions.
