@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Working Go binary that authenticates across all three AWS profile types, loads config, and returns caller identity from STS (completed 2026-03-03)
 - [x] **Phase 2: UI Shell** - Bubble Tea program with persistent status bar, loading states, and clean terminal handling — no resource panels yet (completed 2026-03-04)
-- [ ] **Phase 3: S3 Browsing** - Full S3 navigation from bucket list through prefix hierarchy to object metadata, with live refresh and filter
+- [x] **Phase 3: S3 Browsing** - Full S3 navigation from bucket list through prefix hierarchy to object metadata, with live refresh and filter (completed 2026-03-04)
 - [ ] **Phase 4: ECS Browsing** - Full ECS navigation from cluster list through service detail to task detail, with lazy hierarchical fetch and live refresh
 - [ ] **Phase 5: Profile and Region Switching** - In-session profile and region switching overlays that correctly isolate global vs. regional service behavior
 
@@ -65,8 +65,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — S3 client package (ListBuckets, HeadBucket, ListObjectsV2 paginated) + typed tea.Cmd message types; S3 SDK added to go.mod
-- [ ] 03-02-PLAN.md — S3 panel model (BucketList/PrefixList/ObjectDetail state machine), custom list delegate, breadcrumb header, filter mode, 30s refresh ticker; wire s3Panel into rootModel
+- [x] 03-01-PLAN.md — S3 client package (ListBuckets, HeadBucket, ListObjectsV2 paginated) + typed tea.Cmd message types; S3 SDK added to go.mod
+- [x] 03-02-PLAN.md — S3 panel model (BucketList/PrefixList/ObjectDetail state machine), custom list delegate, breadcrumb header, filter mode, 30s refresh ticker; wire s3Panel into rootModel
 
 ### Phase 4: ECS Browsing
 **Goal**: Full ECS navigation — cluster list to service detail to task detail — with lazy hierarchical fetch, per-level refresh intervals, and full pagination that prevents API throttling
@@ -108,6 +108,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete   | 2026-03-03 |
 | 2. UI Shell | 2/2 | Complete   | 2026-03-03 |
-| 3. S3 Browsing | 1/2 | In Progress|  |
+| 3. S3 Browsing | 2/2 | Complete   | 2026-03-04 |
 | 4. ECS Browsing | 0/2 | Not started | - |
 | 5. Profile and Region Switching | 0/2 | Not started | - |
