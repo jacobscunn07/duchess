@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [x] 01-01-PLAN.md — cobra CLI skeleton + yaml config loading with flag-over-file precedence
-- [ ] 01-02-PLAN.md — AWS session factory (named/role/SSO) + STS GetCallerIdentity + credential error taxonomy
+- [x] 01-02-PLAN.md — AWS session factory (named/role/SSO) + STS GetCallerIdentity + credential error taxonomy
 
 ### Phase 2: UI Shell
 **Goal**: A Bubble Tea TUI that launches cleanly, displays real AWS identity in a persistent status bar, handles terminal resize, and exits gracefully — no resource panels yet
@@ -49,8 +49,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Upgrade Charmbracelet stack to v1.x; create internal/ui package with rootModel scaffold, message types, WindowSizeMsg, NO_COLOR guard, q-to-quit
-- [ ] 02-02-PLAN.md — Status bar component (lipgloss, left/right layout); async STS identity as tea.Cmd; loading spinner; inline error rendering; wire tea.NewProgram into cmd/root.go
+- [x] 02-01-PLAN.md — Upgrade Charmbracelet stack to v1.x; create internal/ui package with rootModel scaffold, message types, WindowSizeMsg, NO_COLOR guard, q-to-quit
+- [x] 02-02-PLAN.md — Status bar component (lipgloss, left/right layout); async STS identity as tea.Cmd; loading spinner; inline error rendering; wire tea.NewProgram into cmd/root.go
 
 ### Phase 3: S3 Browsing
 **Goal**: Full S3 navigation — bucket list to prefix hierarchy to object metadata — with live refresh, breadcrumb header, prefix filter, and paginated API calls that never truncate results
@@ -107,7 +107,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete   | 2026-03-03 |
-| 2. UI Shell | 2/2 | Complete   | 2026-03-04 |
+| 2. UI Shell | 2/2 | Complete   | 2026-03-03 |
 | 3. S3 Browsing | 0/2 | Not started | - |
 | 4. ECS Browsing | 0/2 | Not started | - |
 | 5. Profile and Region Switching | 0/2 | Not started | - |
