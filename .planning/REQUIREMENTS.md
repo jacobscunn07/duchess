@@ -21,9 +21,9 @@ Requirements for initial release. All operations are read-only.
 - [ ] **NAV-01**: All list views support vim-style scrolling (j/k to move up/down rows)
 - [ ] **NAV-02**: User can jump to top of list with g and bottom with G
 - [ ] **NAV-03**: User can navigate back one level with Esc
-- [ ] **NAV-04**: User can quit the app with q
+- [x] **NAV-04**: User can quit the app with q
 - [ ] **NAV-05**: Each view displays a breadcrumb header showing current location (e.g., S3 > my-bucket > logs/)
-- [ ] **NAV-06**: List views display a loading spinner during initial data fetch
+- [x] **NAV-06**: List views display a loading spinner during initial data fetch
 - [ ] **NAV-07**: API errors display inline in the affected view without crashing the app
 
 ### Status Bar
@@ -120,9 +120,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NAV-01 | Phase 3 | Pending |
 | NAV-02 | Phase 3 | Pending |
 | NAV-03 | Phase 3 | Pending |
-| NAV-04 | Phase 2 | Pending |
+| NAV-04 | Phase 2 | Complete |
 | NAV-05 | Phase 3 | Pending |
-| NAV-06 | Phase 2 | Pending |
+| NAV-06 | Phase 2 | Complete |
 | NAV-07 | Phase 2 | Pending |
 | STAT-01 | Phase 2 | Pending |
 | STAT-02 | Phase 2 | Pending |

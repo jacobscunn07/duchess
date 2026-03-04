@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.21
 milestone_name: milestone
-status: unknown
-last_updated: "2026-03-03T20:13:11.074Z"
+status: in_progress
+last_updated: "2026-03-04T00:22:09Z"
 progress:
-  total_phases: 1
+  total_phases: 5
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 3
+  completed_plans: 3
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-02)
 
 **Core value:** Navigate your AWS resources across accounts and regions in one terminal session — no console switching, no `--profile` flags, no context thrash.
-**Current focus:** Phase 1 — Foundation
+**Current focus:** Phase 2 — UI Shell
 
 ## Current Position
 
-Phase: 1 of 5 (Foundation)
-Plan: 2 of 2 in current phase (COMPLETE)
-Status: Phase 1 complete — ready for Phase 2
-Last activity: 2026-03-03 — Plan 01-02 complete: AWS session factory + credential error taxonomy
+Phase: 2 of 5 (UI Shell)
+Plan: 1 of 3 in current phase (COMPLETE)
+Status: Plan 02-01 complete — Bubble Tea v1.x stack + rootModel scaffold ready for status bar
+Last activity: 2026-03-04 — Plan 02-01 complete: charmbracelet v1.x upgrade + rootModel TUI scaffold
 
-Progress: [██░░░░░░░░] 20%
+Progress: [███░░░░░░░] 30%
 
 ## Performance Metrics
 
@@ -41,9 +41,10 @@ Progress: [██░░░░░░░░] 20%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | Phase 1 | 2/2 | 7 min | 3.5 min |
+| Phase 2 | 1/3 | 2 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (4 min), 01-02 (3 min)
+- Last 5 plans: 01-01 (4 min), 01-02 (3 min), 02-01 (2 min)
 - Trend: on pace
 
 *Updated after each plan completion*
@@ -62,6 +63,10 @@ Recent decisions affecting current work:
 - 01-01: AWS SDK deps kept in go.mod after Plan 01 even though not imported yet — Plan 02 will import them directly
 - 01-02: package named "session" (not "aws") to avoid shadowing SDK's top-level "aws" package — imported with alias in cmd/root.go
 - 01-02: ssocreds.InvalidTokenError checked BEFORE smithy.APIError in ClassifyCredentialError — order is critical since InvalidTokenError is not a smithy.APIError implementor
+- 02-01: charmbracelet v1.x stack used (NOT v2) — v2 uses charm.land/ import paths with breaking API changes
+- 02-01: termenv.Ascii used for NO_COLOR guard via lipgloss.SetColorProfile — termenv is a transitive lipgloss dependency
+- 02-01: spinner.TickMsg swallowed when state != stateLoading — prevents wasted renders after identity loaded
+- 02-01: rootModel uses value receivers — standard Bubble Tea convention, state mutations return new model copy
 
 ### Pending Todos
 
@@ -73,6 +78,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-03
-Stopped at: Completed 01-02-PLAN.md — AWS session factory + STS GetCallerIdentity + credential error taxonomy; Phase 1 complete
+Last session: 2026-03-04
+Stopped at: Completed 02-01-PLAN.md — charmbracelet v1.x upgrade + rootModel TUI scaffold with async identity fetch wiring
 Resume file: None
