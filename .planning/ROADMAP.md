@@ -46,11 +46,11 @@ Plans:
   3. Pressing `q` from any screen quits the application cleanly with no error output
   4. A loading spinner is visible while the initial AWS identity fetch is in progress
   5. A simulated API error (injected via test) renders as inline text in the affected view area without crashing the program
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: Upgrade bubbles from v0.21.0 to v1.0.0; add cobra, ecs service package to go.mod; implement Root Model with WindowSizeMsg handling, NO_COLOR support, and q-to-quit keybinding
-- [ ] 02-02: Implement status bar component (lipgloss) showing version, profile, region, IAM principal, clock; wire async STS GetCallerIdentity as tea.Cmd; implement loading spinner and inline error rendering
+- [ ] 02-01-PLAN.md — Upgrade Charmbracelet stack to v1.x; create internal/ui package with rootModel scaffold, message types, WindowSizeMsg, NO_COLOR guard, q-to-quit
+- [ ] 02-02-PLAN.md — Status bar component (lipgloss, left/right layout); async STS identity as tea.Cmd; loading spinner; inline error rendering; wire tea.NewProgram into cmd/root.go
 
 ### Phase 3: S3 Browsing
 **Goal**: Full S3 navigation — bucket list to prefix hierarchy to object metadata — with live refresh, breadcrumb header, prefix filter, and paginated API calls that never truncate results
