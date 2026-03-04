@@ -24,16 +24,16 @@ Requirements for initial release. All operations are read-only.
 - [x] **NAV-04**: User can quit the app with q
 - [ ] **NAV-05**: Each view displays a breadcrumb header showing current location (e.g., S3 > my-bucket > logs/)
 - [x] **NAV-06**: List views display a loading spinner during initial data fetch
-- [ ] **NAV-07**: API errors display inline in the affected view without crashing the app
+- [x] **NAV-07**: API errors display inline in the affected view without crashing the app
 
 ### Status Bar
 
-- [ ] **STAT-01**: Status bar displays the application version
-- [ ] **STAT-02**: Status bar displays the current AWS profile name
-- [ ] **STAT-03**: Status bar displays the current AWS region
-- [ ] **STAT-04**: Status bar displays the current IAM principal (account ID + role/user ARN from STS GetCallerIdentity)
-- [ ] **STAT-05**: Status bar displays the current date and time
-- [ ] **STAT-06**: Status bar updates immediately when profile or region changes
+- [x] **STAT-01**: Status bar displays the application version
+- [x] **STAT-02**: Status bar displays the current AWS profile name
+- [x] **STAT-03**: Status bar displays the current AWS region
+- [x] **STAT-04**: Status bar displays the current IAM principal (account ID + role/user ARN from STS GetCallerIdentity)
+- [x] **STAT-05**: Status bar displays the current date and time
+- [x] **STAT-06**: Status bar updates immediately when profile or region changes
 
 ### S3
 
@@ -123,13 +123,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NAV-04 | Phase 2 | Complete |
 | NAV-05 | Phase 3 | Pending |
 | NAV-06 | Phase 2 | Complete |
-| NAV-07 | Phase 2 | Pending |
-| STAT-01 | Phase 2 | Pending |
-| STAT-02 | Phase 2 | Pending |
-| STAT-03 | Phase 2 | Pending |
-| STAT-04 | Phase 2 | Pending |
-| STAT-05 | Phase 2 | Pending |
-| STAT-06 | Phase 2 | Pending |
+| NAV-07 | Phase 2 | Complete |
+| STAT-01 | Phase 2 | Complete |
+| STAT-02 | Phase 2 | Complete |
+| STAT-03 | Phase 2 | Complete |
+| STAT-04 | Phase 2 | Complete |
+| STAT-05 | Phase 2 | Complete |
+| STAT-06 | Phase 2 | Complete |
 | S3-01 | Phase 3 | Pending |
 | S3-02 | Phase 3 | Pending |
 | S3-03 | Phase 3 | Pending |
