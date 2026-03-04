@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 03-s3-browsing
 source: 03-01-SUMMARY.md, 03-02-SUMMARY.md
 started: 2026-03-04T20:30:00Z
@@ -77,5 +77,11 @@ skipped: 0
   reason: "User reported: Filter only opens when inside a bucket. It does not appear on the bucket list screen."
   severity: major
   test: 8
-  artifacts: []
-  missing: []
+  root_cause: "The / key handler on line 152 of model.go includes a guard condition `m.state == panelPrefixList` that explicitly prevents filter mode from activating when m.state == panelBucketList."
+  artifacts:
+    - path: "internal/ui/s3/model.go"
+      issue: "Line 152: guard `m.state == panelPrefixList` blocks / key on bucket list. Line 144-145: enter filter-apply calls FetchPrefixCmd unconditionally (panelBucketList has nil bucketClient)."
+  missing:
+    - "Widen / activation guard to also allow panelBucketList: `m.state == panelPrefixList || m.state == panelBucketList`"
+    - "Fix enter filter-apply to branch on state: panelBucketList does client-side substring filter on savedItems; panelPrefixList keeps existing FetchPrefixCmd behavior"
+  debug_session: ""

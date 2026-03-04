@@ -1,119 +1,98 @@
 ---
 phase: 03-s3-browsing
-verified: 2026-03-04T21:00:00Z
+verified: 2026-03-04T21:30:00Z
 status: passed
-score: 16/16 must-haves verified
-re_verification: null
+score: 3/3 must-haves verified
+re_verification:
+  previous_status: passed
+  previous_score: 16/16
+  gaps_closed:
+    - "Filter mode reachable from bucket list (/ guard widened to include panelBucketList)"
+    - "Enter in filter mode on bucket list applies client-side substring filter (no FetchPrefixCmd call)"
+    - "Esc dismisses filter bar and restores full list from both panelBucketList and panelPrefixList"
+  gaps_remaining: []
+  regressions: []
 gaps: []
 human_verification:
   - test: "Full S3 navigation end-to-end in running TUI"
-    expected: "Bucket list loads, Enter descends, Esc ascends, object detail shows metadata, / filter works, j/k/g/G scroll, breadcrumb updates, refresh spinner visible, q exits"
+    expected: "Bucket list loads, Enter descends, Esc ascends, object detail shows metadata, / filter works on both bucket list and prefix list, j/k/g/G scroll, breadcrumb updates, refresh spinner visible, q exits"
     why_human: "Runtime behavior requires a real AWS profile to produce live S3 data; terminal rendering and animation cannot be verified statically"
 ---
 
-# Phase 3: S3 Browsing Verification Report
+# Phase 3: S3 Browsing Verification Report (Plan 03-03 Gap Closure)
 
-**Phase Goal:** Build a navigable S3 browser panel in the Duchess TUI
-**Verified:** 2026-03-04T21:00:00Z
+**Phase Goal:** Close UAT gap #8 — pressing / from the bucket list should open a filter bar
+**Verified:** 2026-03-04T21:30:00Z
 **Status:** PASSED
-**Re-verification:** No — initial verification
+**Re-verification:** Yes — after gap closure (plan 03-03); previous verification covered plans 03-01 and 03-02 (score 16/16 passed)
 
 ## Goal Achievement
 
-### Observable Truths (Plan 03-01)
+### Observable Truths (Plan 03-03 Must-Haves)
 
 | #  | Truth | Status | Evidence |
 |----|-------|--------|----------|
-| 1  | S3 API functions exist and compile: ListAllBuckets, BucketRegion, NewBucketClient, ListPrefix | VERIFIED | All four functions present in `internal/ui/s3/client.go`; `go build ./...` passes |
-| 2  | Per-bucket regional S3 client construction uses HeadBucket (not GetBucketLocation) | VERIFIED | `client.HeadBucket()` called in `BucketRegion()`; "GetBucketLocation" appears nowhere in codebase |
-| 3  | ListPrefix uses Delimiter='/' so virtual folders and real objects are returned separately | VERIFIED | `Delimiter: aws.String("/")` on line 75 of `client.go` with mandatory-use comment |
-| 4  | All S3 API calls are paginated — no single-page truncation | VERIFIED | `s3.NewListBucketsPaginator` and `s3.NewListObjectsV2Paginator` used with `HasMorePages()`/`NextPage()` loops |
-| 5  | Message types exist for all async S3 events: buckets loaded, prefixes loaded, object detail, errors | VERIFIED | All seven types present in `messages.go`: bucketsLoadedMsg, bucketsErrMsg, prefixesLoadedMsg, prefixesErrMsg, bucketClientReadyMsg, bucketClientErrMsg, s3RefreshTickMsg |
-| 6  | Filter re-fetch is supported by ListPrefix accepting an arbitrary prefix string (currentPrefix + filterValue) | VERIFIED | `filterPrefix := m.currentPrefix() + m.filterValue` passed to `FetchPrefixCmd` in model.go line 144 |
+| 1  | Pressing / from the bucket list opens a filter bar with a 'Filter: ' prompt | VERIFIED | `case "/"` guard at line 167: `!m.filterMode && (m.state == panelPrefixList \|\| m.state == panelBucketList)` — `panelBucketList` now included. `filterInput.Prompt = "Filter: "` set at line 71. `View()` renders `m.filterInput.View()` as `filterBar` at line 288 when `m.filterMode` is true, for both `panelBucketList` and `panelPrefixList` states (line 282 case covers both). |
+| 2  | Typing a substring and pressing Enter on the bucket list narrows the visible buckets to those whose names contain the substring | VERIFIED | `case "enter"` with `m.filterMode` true (line 139): branches on `m.state == panelBucketList` (line 142) — executes client-side `strings.Contains(s3it.name, query)` loop over `savedItems` (lines 144–151), calls `m.list.SetItems(filtered)` (line 152), clears `savedItems`. `bucketClient` is never touched. Test `TestFilterEnter_BucketList` passes: 4 items filtered to 2 containing "alpha". |
+| 3  | Pressing Esc with the filter bar open (on either bucket list or prefix list) dismisses the bar and restores the full previous list | VERIFIED | `case "esc"` with `m.filterMode` true (line 120): clears `filterMode`, resets `filterInput`, restores `savedItems` via `m.list.SetItems(m.savedItems)`, sets `savedItems = nil`. Applies identically for both `panelBucketList` and `panelPrefixList`. Tests `TestFilterEsc_BucketList` and `TestFilterEsc_PrefixList` both pass. |
 
-### Observable Truths (Plan 03-02)
-
-| #  | Truth | Status | Evidence |
-|----|-------|--------|----------|
-| 7  | User sees a full list of S3 buckets when the TUI reaches stateReady | VERIFIED | `Init()` fires `FetchBucketsCmd`; `bucketsLoadedMsg` populates list; `contentView()` returns `m.s3Panel.View()` in `stateReady` |
-| 8  | User can press Enter on a bucket to navigate into it and see its prefixes and objects | VERIFIED | `descendIntoSelected()` handles `kindBucket`: fires `FetchBucketClientCmd`, `bucketClientReadyMsg` transitions to `panelPrefixList` and fires `FetchPrefixCmd` |
-| 9  | User can press Esc to ascend back to the bucket list from a prefix view | VERIFIED | `ascendLevel()` pops `prefixStack`; when empty, transitions to `panelBucketList` and re-fetches buckets |
-| 10 | User can press Enter on an object to see its metadata (key, size, last modified, storage class, ETag) | VERIFIED | `descendIntoSelected()` handles `kindObject`: sets `panelObjectDetail`; `renderObjectDetail()` renders Key, Size, Last Modified, Storage Class, ETag fields |
-| 11 | User can press / to enter filter mode and Enter to re-fetch with the filter applied as a server-side prefix | VERIFIED | `case "/"` sets `filterMode=true`; `case "enter"` in filter mode computes `filterPrefix = currentPrefix + filterValue` and calls `FetchPrefixCmd` |
-| 12 | j/k scroll rows; g/G jump to top/bottom in all list views | VERIFIED | Key messages not intercepted by custom handler are forwarded to `m.list.Update(msg)` (line 249); bubbles/list DefaultKeyMap handles j/k/g/G natively |
-| 13 | Breadcrumb header shows S3 > bucket-name > prefix/ at every navigation level | VERIFIED | `renderBreadcrumb()` builds `parts := []string{"S3"}` then appends `selectedBucket` and each element of `prefixStack`, joined with " > " |
-| 14 | Breadcrumb left-truncates with ... > when path is too long for terminal width | VERIFIED | `parts = append([]string{"..."}, parts[2:]...)` loop in `renderBreadcrumb()` while `lipgloss.Width(crumb) > maxWidth` |
-| 15 | A spinner in the breadcrumb line appears during the 30-second background refresh | VERIFIED | `suffix = "  " + m.refreshSpinner.View()` appended when `m.refreshing || m.loading`; `s3RefreshTickMsg` sets `m.refreshing = true` |
-| 16 | S3 errors display inline in the content area | VERIFIED | `if m.err != nil && !m.loading` renders `m.err.Error()` with lipgloss styling in `View()` (line 268-270) |
-
-**Score:** 16/16 truths verified
+**Score:** 3/3 truths verified
 
 ### Required Artifacts
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `internal/ui/s3/client.go` | ListAllBuckets, BucketRegion, NewBucketClient, ListPrefix + 4 tea.Cmd constructors | VERIFIED | All 8 functions present; 137 lines of substantive implementation with pagination and comments |
-| `internal/ui/s3/messages.go` | 7 typed tea message types | VERIFIED | All 7 types present: bucketsLoadedMsg, bucketsErrMsg, prefixesLoadedMsg, prefixesErrMsg, bucketClientReadyMsg, bucketClientErrMsg, s3RefreshTickMsg |
-| `go.mod` | aws-sdk-go-v2/service/s3 as direct dependency | VERIFIED | `github.com/aws/aws-sdk-go-v2/service/s3 v1.96.3` in direct require block |
-| `internal/ui/s3/model.go` | s3.Model with three-state panel, Init/Update/View | VERIFIED | 455 lines; all three states implemented; ascendLevel/descendIntoSelected use correct value-receiver return pattern |
-| `internal/ui/s3/delegate.go` | s3Item (kindBucket/kindPrefix/kindObject), s3Delegate, bucketsToItems/prefixesToItems | VERIFIED | All types and helpers present; 175 lines of substantive implementation |
-| `internal/ui/model.go` | rootModel with s3Panel field; contentView() returns s3Panel.View() in stateReady | VERIFIED | `s3Panel s3panel.Model` field present; `identityLoadedMsg` initializes panel; `default: // stateReady` returns `m.s3Panel.View()` |
+| `internal/ui/s3/model.go` | S3 panel model with / filter enabled on both panelBucketList and panelPrefixList | VERIFIED | 469 lines; substantive implementation. Exact guard condition `m.state == panelPrefixList \|\| m.state == panelBucketList` present at line 167. `case "enter"` correctly branches on `m.state == panelBucketList` at line 142. `go build ./...` exits 0. |
+| `internal/ui/s3/model_test.go` | 7 unit tests for filter key interactions on panelBucketList and panelPrefixList | VERIFIED | 232 lines; 7 tests: `TestFilterSlash_BucketList`, `TestFilterSlash_PrefixList`, `TestFilterEnter_BucketList`, `TestFilterEnter_EmptyQuery_BucketList`, `TestFilterEnter_PrefixList`, `TestFilterEsc_BucketList`, `TestFilterEsc_PrefixList`. All pass. |
 
 ### Key Link Verification
 
 | From | To | Via | Status | Details |
 |------|-----|-----|--------|---------|
-| `internal/ui/s3/client.go` | `github.com/aws/aws-sdk-go-v2/service/s3` | go import | WIRED | Import present on line 9; SDK types used throughout |
-| `internal/ui/s3/messages.go` | `github.com/aws/aws-sdk-go-v2/service/s3/types` | go import | WIRED | `types.Bucket` and `types.Object` used in message struct fields |
-| `internal/ui/model.go` | `internal/ui/s3/model.go` | s3Panel field + s3Panel.Update(msg) in stateReady | WIRED | `s3panel "github.com/jacobscunn07/duchess/internal/ui/s3"` imported; `m.s3Panel.Update(msg)` called at lines 88, 132, 141; `m.s3Panel.View()` at line 180 |
-| `internal/ui/s3/model.go` | `internal/ui/s3/client.go` | FetchBucketsCmd, FetchBucketClientCmd, FetchPrefixCmd, S3RefreshTickCmd | WIRED | All four Cmd constructors called in model.go Update() and Init() (lines 93-94, 145, 192, 222, 229, 235, 378, 380, 389, 418, 431) |
-| `internal/ui/s3/model.go` | `github.com/charmbracelet/bubbles/list` | embedded list.Model | WIRED | `list list.Model` field in struct; `list.New(...)` in NewModel; `m.list.Update(msg)` in Update |
+| `model.go case "/":` | `filterMode = true` | guard condition allows panelBucketList | WIRED | Line 167: `if !m.filterMode && (m.state == panelPrefixList \|\| m.state == panelBucketList)` — exact pattern from must_haves verified. `m.filterMode = true` set on line 168. |
+| `model.go case "enter": filterMode branch` | `list.SetItems(filtered savedItems)` | client-side substring filter when state == panelBucketList | WIRED | Line 142: `if m.state == panelBucketList` branches to `strings.Contains` loop (lines 144–151) then `m.list.SetItems(filtered)` (line 152). `panelBucketList` string present in enter handler as required by must_haves key_links pattern. |
 
 ### Requirements Coverage
 
 | Requirement | Source Plan | Description | Status | Evidence |
 |-------------|------------|-------------|--------|----------|
-| S3-01 | 03-01, 03-02 | User can view a list of all S3 buckets accessible by the current profile | SATISFIED | `ListAllBuckets` paginated; `FetchBucketsCmd` fires on `Init()`; `bucketsLoadedMsg` populates list in `stateReady` |
-| S3-02 | 03-01, 03-02 | User can navigate into a bucket to browse object prefixes (Enter to descend) | SATISFIED | `descendIntoSelected()` handles `kindBucket`; fires `FetchBucketClientCmd` → `bucketClientReadyMsg` → `FetchPrefixCmd` → `panelPrefixList` |
-| S3-03 | 03-01, 03-02 | User can navigate into prefixes recursively (Esc to ascend) | SATISFIED | `ascendLevel()` pops `prefixStack` on each Esc; returns to `panelBucketList` when stack empty; handles all three panel states |
-| S3-04 | 03-01, 03-02 | User can view object metadata (key, size, last modified, storage class) | SATISFIED | `renderObjectDetail()` displays Key, Size, Last Modified, Storage Class, ETag from `s3Item` |
-| S3-05 | 03-01, 03-02 | User can filter objects within current prefix (/ key, server-side ListObjectsV2 prefix) | SATISFIED | `case "/"` enters filter mode; `case "enter"` in filter mode calls `FetchPrefixCmd` with `currentPrefix + filterValue`; Esc cancels and restores `savedItems` |
-| NAV-01 | 03-02 | All list views support vim-style scrolling (j/k) | SATISFIED | All key messages not intercepted are forwarded to `m.list.Update(msg)`; bubbles/list DefaultKeyMap provides j/k natively |
-| NAV-02 | 03-02 | User can jump to top with g and bottom with G | SATISFIED | Same forwarding path as NAV-01; bubbles/list DefaultKeyMap provides g/G natively |
-| NAV-03 | 03-02 | User can navigate back one level with Esc | SATISFIED | `ascendLevel()` handles: ObjectDetail→PrefixList, PrefixList(prefix)→PrefixList(parent), PrefixList(root)→BucketList |
-| NAV-05 | 03-02 | Each view displays a breadcrumb header showing current location | SATISFIED | `renderBreadcrumb()` renders "S3 > bucket-name > prefix/" at all three panel states; called unconditionally in `View()` |
-
-**Note on go-humanize:** Listed as `// indirect` in go.mod but directly imported in `internal/ui/s3/delegate.go` and `internal/ui/s3/model.go`. This is a go.mod classification issue (the dependency was transitive before s3 package was created) — the code actually imports and uses it directly. No functional impact; `go mod tidy` would promote it to a direct dependency.
+| S3-04 | 03-03 | User can filter S3 buckets from the bucket list screen using / key (client-side substring filter) | SATISFIED | / guard widened to include `panelBucketList`; Enter applies `strings.Contains` client-side filter; Esc restores full list. 7 unit tests cover all interaction paths. |
 
 ### Anti-Patterns Found
 
-No anti-patterns found in any phase-modified files. Scan covered:
-- `internal/ui/s3/client.go`
-- `internal/ui/s3/messages.go`
+No anti-patterns found. Scan covered:
 - `internal/ui/s3/model.go`
-- `internal/ui/s3/delegate.go`
-- `internal/ui/model.go`
-- `internal/ui/messages.go`
+- `internal/ui/s3/model_test.go`
 
-No TODO/FIXME/HACK/PLACEHOLDER comments, no stub returns (return null/empty), no console-log-only implementations.
+No TODO/FIXME/HACK/PLACEHOLDER comments. No stub returns. No empty handler bodies. No console-log-only implementations.
 
 ### Build and Test Verification
 
 ```
-go build ./...   → PASSED (zero errors)
-go vet ./...     → PASSED (zero warnings)
-go test ./...    → PASSED (all existing tests green)
+go build ./...                         PASSED (exit 0)
+go vet ./...                           PASSED (exit 0)
+go test ./internal/ui/s3/... -v -run TestFilter   PASSED (7/7 tests)
+go test ./...                          PASSED (all packages)
 ```
 
-Test packages passing:
-- `internal/aws` (cached)
-- `internal/config` (cached)
-- `internal/ui` (cached)
-- `internal/ui/s3` (no test files — panel model UI behavior tested via human verification checkpoint)
+Test results:
+```
+=== RUN   TestFilterSlash_BucketList     --- PASS (0.00s)
+=== RUN   TestFilterSlash_PrefixList     --- PASS (0.00s)
+=== RUN   TestFilterEnter_BucketList     --- PASS (0.00s)
+=== RUN   TestFilterEnter_EmptyQuery_BucketList  --- PASS (0.00s)
+=== RUN   TestFilterEnter_PrefixList     --- PASS (0.00s)
+=== RUN   TestFilterEsc_BucketList       --- PASS (0.00s)
+=== RUN   TestFilterEsc_PrefixList       --- PASS (0.00s)
+```
+
+Commits confirmed in git log:
+- `0a331c5` — test(03-03): add failing tests for bucket-list filter activation and client-side filter (RED)
+- `fe33f69` — feat(03-03): widen / guard and fix enter-to-apply branching in model.go (GREEN)
 
 ### Human Verification Required
 
-#### 1. Full S3 Navigation in Running TUI
+#### 1. Full S3 Navigation With Bucket List Filter in Running TUI
 
 **Test:** Build and launch with a real AWS profile:
 ```bash
@@ -121,32 +100,26 @@ cd /Users/jacobcunningham/_CODE/duchess
 go build -o duchess . && ./duchess --profile <your-profile>
 ```
 
-Verify in order:
-1. After identity loads, bucket list appears in content area
-2. j/k moves cursor; g jumps to top; G jumps to bottom
-3. Enter on a bucket changes breadcrumb to "S3 > bucket-name" and shows prefix/object list
-4. Enter on a prefix adds a segment to the breadcrumb and descends
-5. Esc ascends one level; breadcrumb shortens correctly
-6. Enter on an object shows detail pane with Key, Size, Last Modified, Storage Class, ETag
-7. Esc from object detail returns to prefix list
-8. / in prefix list shows filter bar at bottom; typing characters builds the filter prefix
-9. Enter in filter mode re-fetches with filtered results
-10. Esc in filter mode cancels filter and restores the previous item list
-11. q exits the app cleanly from any view
-12. Status bar remains visible and accurate throughout navigation
-13. Spinner appears in breadcrumb during loads and 30-second background refresh
+Verify filter behavior from bucket list:
+1. After identity loads, bucket list appears
+2. Press / — filter bar appears at bottom with "Filter: " prompt
+3. Type a partial bucket name substring — characters appear in the filter input
+4. Press Enter — list narrows to only buckets whose names contain the typed substring
+5. Press / again — filter bar reappears; type a query; press Esc — full bucket list restores
+6. Navigate into a bucket with Enter; press / in the prefix list — filter bar appears (regression guard)
+7. Enter in prefix list filter mode still re-fetches via S3 API (not client-side)
 
-**Expected:** All 13 behaviors work correctly end-to-end
+**Expected:** All 7 behaviors work correctly end-to-end
 
-**Why human:** Terminal rendering, real AWS API responses, spinner animation timing, and breadcrumb truncation at various terminal widths cannot be verified without a running TUI and real AWS credentials. This checkpoint was approved by the developer during plan execution (documented in 03-02-SUMMARY.md).
+**Why human:** Terminal rendering of the textinput prompt, real AWS bucket names for substring matching, and TUI event loop behavior cannot be verified without a running process and real credentials.
 
 ### Gaps Summary
 
-No gaps. All 16 observable truths verified, all 6 artifacts substantive and wired, all 5 key links confirmed, all 9 requirement IDs satisfied.
+No gaps. All 3 observable truths verified (3/3), both artifacts substantive and fully wired, both key links confirmed present at exact line locations, requirement S3-04 satisfied. Build passes, vet passes, all 7 filter unit tests pass.
 
-One minor observation: `go-humanize` is classified as `// indirect` in go.mod despite being directly imported by the new s3 package. This does not affect compilation, test execution, or runtime behavior — it is a cosmetic go.mod classification that `go mod tidy` would correct. Not a blocker.
+UAT gap #8 is closed: the / key guard was widened from `panelPrefixList`-only to `(panelPrefixList || panelBucketList)`, and the Enter-to-apply path now correctly branches to a client-side `strings.Contains` filter for `panelBucketList` (avoiding any call to `FetchPrefixCmd` which would panic with nil `bucketClient`).
 
 ---
 
-_Verified: 2026-03-04T21:00:00Z_
+_Verified: 2026-03-04T21:30:00Z_
 _Verifier: Claude (gsd-verifier)_
