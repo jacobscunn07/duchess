@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	"fmt"
-
-	"github.com/jacobscunn07/duchess/internal/config"
+	tea "github.com/charmbracelet/bubbletea"
 	session "github.com/jacobscunn07/duchess/internal/aws"
+	"github.com/jacobscunn07/duchess/internal/config"
+	"github.com/jacobscunn07/duchess/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -28,8 +28,8 @@ func init() {
 }
 
 // runRoot is the RunE handler for the root command.
-// Loads config, creates an AWS session, calls STS GetCallerIdentity, and prints the result.
-// Phase 2 will replace the print statement with a Bubble Tea program launch.
+// Loads config, creates an AWS config, then launches the Bubble Tea TUI.
+// STS GetCallerIdentity is performed asynchronously inside the TUI via fetchIdentityCmd.
 func runRoot(cmd *cobra.Command, args []string) error {
 	cfg, err := config.LoadConfig(cmd)
 	if err != nil {
@@ -41,11 +41,10 @@ func runRoot(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	account, arn, err := session.GetCallerIdentity(cmd.Context(), awsCfg)
-	if err != nil {
-		return session.ClassifyCredentialError(err, cfg.Profile)
+	model := ui.NewRootModel(cmd.Context(), cfg, awsCfg)
+	p := tea.NewProgram(model, tea.WithAltScreen())
+	if _, err := p.Run(); err != nil {
+		return err
 	}
-
-	fmt.Printf("Account: %s\nARN:     %s\n", account, arn)
 	return nil
 }

@@ -121,7 +121,34 @@ func (m rootModel) View() string {
 	if m.width == 0 {
 		return ""
 	}
-	return lipgloss.NewStyle().Width(m.width).Height(m.height).Render("")
+	statusBar := renderStatusBar(m)
+	contentH := m.height - lipgloss.Height(statusBar)
+	if contentH < 0 {
+		contentH = 0
+	}
+	content := lipgloss.NewStyle().
+		Width(m.width).
+		Height(contentH).
+		Render(m.contentView())
+	return lipgloss.JoinVertical(lipgloss.Left, content, statusBar)
+}
+
+// contentView returns the main content area string based on the current model state.
+func (m rootModel) contentView() string {
+	statusBar := renderStatusBar(m)
+	contentH := m.height - lipgloss.Height(statusBar)
+	if contentH <= 0 {
+		return m.spinner.View() + " Connecting to AWS..."
+	}
+	switch m.state {
+	case stateLoading:
+		return lipgloss.Place(m.width, contentH, lipgloss.Center, lipgloss.Center,
+			m.spinner.View()+" Connecting to AWS...")
+	case stateError:
+		return lipgloss.NewStyle().Width(m.width).Padding(1, 2).Render(m.err.Error())
+	default: // stateReady
+		return lipgloss.NewStyle().Width(m.width).Render("")
+	}
 }
 
 // fetchIdentityCmd wraps session.GetCallerIdentity asynchronously.
