@@ -62,11 +62,11 @@ Plans:
   3. User can press Enter on an object to see its metadata (key, size, last modified, storage class) in a detail panel or inline row
   4. Pressing `/` enters filter mode and narrows the visible objects using a server-side ListObjectsV2 prefix — the filter does not fetch more items than the current prefix contains
   5. A breadcrumb header (e.g., `S3 > my-bucket > logs/`) updates correctly at every level; `j`/`k` scroll rows, `g`/`G` jump to top/bottom throughout all S3 views
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: Implement S3 client interface with ListBuckets (paginated), per-bucket regional client construction via HeadBucket, and ListObjectsV2Paginator; wire refresh ticker (30s default for S3)
-- [ ] 03-02: Implement S3 panel state machine (BucketList -> PrefixList -> ObjectDetail) with bubbles List/Table; breadcrumb header; j/k/g/G keybindings; Esc to ascend; Enter to descend; / filter mode
+- [ ] 03-01-PLAN.md — S3 client package (ListBuckets, HeadBucket, ListObjectsV2 paginated) + typed tea.Cmd message types; S3 SDK added to go.mod
+- [ ] 03-02-PLAN.md — S3 panel model (BucketList/PrefixList/ObjectDetail state machine), custom list delegate, breadcrumb header, filter mode, 30s refresh ticker; wire s3Panel into rootModel
 
 ### Phase 4: ECS Browsing
 **Goal**: Full ECS navigation — cluster list to service detail to task detail — with lazy hierarchical fetch, per-level refresh intervals, and full pagination that prevents API throttling
