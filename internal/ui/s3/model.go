@@ -137,9 +137,24 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 
 		case "enter":
 			if m.filterMode {
-				// Apply filter: re-fetch with currentPrefix + filterInput.Value()
-				m.filterValue = m.filterInput.Value()
+				query := m.filterInput.Value()
 				m.filterMode = false
+				if m.state == panelBucketList {
+					// Client-side substring filter — bucketClient is nil here; never call FetchPrefixCmd.
+					filtered := make([]list.Item, 0, len(m.savedItems))
+					for _, it := range m.savedItems {
+						if s3it, ok := it.(s3Item); ok {
+							if query == "" || strings.Contains(s3it.name, query) {
+								filtered = append(filtered, it)
+							}
+						}
+					}
+					cmd := m.list.SetItems(filtered)
+					m.savedItems = nil
+					return m, cmd
+				}
+				// panelPrefixList: server-side prefix filter via S3 API.
+				m.filterValue = query
 				m.loading = true
 				filterPrefix := m.currentPrefix() + m.filterValue
 				return m, FetchPrefixCmd(m.ctx, m.bucketClient, m.selectedBucket, filterPrefix)
@@ -149,7 +164,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			return m, cmd
 
 		case "/":
-			if !m.filterMode && m.state == panelPrefixList {
+			if !m.filterMode && (m.state == panelPrefixList || m.state == panelBucketList) {
 				m.filterMode = true
 				m.savedItems = m.list.Items() // save for Esc restore
 				m.filterInput.SetValue("")
