@@ -37,11 +37,11 @@ Requirements for initial release. All operations are read-only.
 
 ### S3
 
-- [ ] **S3-01**: User can view a list of all S3 buckets accessible by the current profile
-- [ ] **S3-02**: User can navigate into a bucket to browse object prefixes (folder metaphor, Enter to descend)
-- [ ] **S3-03**: User can navigate into prefixes recursively (Esc to ascend)
-- [ ] **S3-04**: User can view object metadata for the selected object (key, size, last modified, storage class)
-- [ ] **S3-05**: User can filter objects within the current prefix by typing (/ key enters filter mode, uses ListObjectsV2 server-side prefix)
+- [x] **S3-01**: User can view a list of all S3 buckets accessible by the current profile
+- [x] **S3-02**: User can navigate into a bucket to browse object prefixes (folder metaphor, Enter to descend)
+- [x] **S3-03**: User can navigate into prefixes recursively (Esc to ascend)
+- [x] **S3-04**: User can view object metadata for the selected object (key, size, last modified, storage class)
+- [x] **S3-05**: User can filter objects within the current prefix by typing (/ key enters filter mode, uses ListObjectsV2 server-side prefix)
 
 ### ECS
 
@@ -130,11 +130,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STAT-04 | Phase 2 | Complete |
 | STAT-05 | Phase 2 | Complete |
 | STAT-06 | Phase 2 | Complete |
-| S3-01 | Phase 3 | Pending |
-| S3-02 | Phase 3 | Pending |
-| S3-03 | Phase 3 | Pending |
-| S3-04 | Phase 3 | Pending |
-| S3-05 | Phase 3 | Pending |
+| S3-01 | Phase 3 | Complete |
+| S3-02 | Phase 3 | Complete |
+| S3-03 | Phase 3 | Complete |
+| S3-04 | Phase 3 | Complete |
+| S3-05 | Phase 3 | Complete |
 | ECS-01 | Phase 4 | Pending |
 | ECS-02 | Phase 4 | Pending |
 | ECS-03 | Phase 4 | Pending |

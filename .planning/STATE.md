@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: unknown
-last_updated: "2026-03-04T00:48:52.012Z"
+status: in-progress
+last_updated: "2026-03-04T01:00:00.000Z"
 progress:
-  total_phases: 2
+  total_phases: 5
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 9
+  completed_plans: 5
 ---
 
 # Project State
@@ -22,12 +22,12 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 
 ## Current Position
 
-Phase: 2 of 5 (UI Shell)
-Plan: 2 of 2 completed in current phase — awaiting Plan 03
-Status: Plan 02-02 fully complete including visual verification fix; TUI shell verified working end-to-end
-Last activity: 2026-03-03 — Plan 02-02 complete: status bar + TUI layout + tea.NewProgram wired + async credential error fix verified
+Phase: 3 of 5 (S3 Browsing)
+Plan: 1 of 3 completed in current phase — ready for Plan 03-02
+Status: Plan 03-01 complete; S3 client layer built with paginated ListAllBuckets, HeadBucket region detection, ListPrefix with Delimiter, and typed tea message types
+Last activity: 2026-03-04 — Plan 03-01 complete: internal/ui/s3/ package with client.go + messages.go; go build ./... and all 28 tests pass
 
-Progress: [████░░░░░░] 40%
+Progress: [█████░░░░░] 56%
 
 ## Performance Metrics
 
@@ -42,9 +42,10 @@ Progress: [████░░░░░░] 40%
 |-------|-------|-------|----------|
 | Phase 1 | 2/2 | 7 min | 3.5 min |
 | Phase 2 | 2/2 | 17 min | 8.5 min |
+| Phase 3 | 1/3 | 2 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (4 min), 01-02 (3 min), 02-01 (2 min), 02-02 (2 min)
+- Last 5 plans: 01-01 (4 min), 01-02 (3 min), 02-01 (2 min), 02-02 (2 min), 03-01 (2 min)
 - Trend: on pace
 
 *Updated after each plan completion*
@@ -72,6 +73,10 @@ Recent decisions affecting current work:
 - [Phase 02-ui-shell]: 02-02: tea.WithAltScreen() used for clean terminal restore on exit
 - [Phase 02-ui-shell]: 02-02: AWS config loading deferred to fetchIdentityCmd closure — all credential/profile errors now surface as inline TUI errors, not pre-launch cobra errors
 - [Phase 02-ui-shell]: 02-02: NewRootModel no longer accepts aws.Config — lazy loading inside async cmd is the correct TUI pattern
+- [Phase 03-s3-browsing]: 03-01: HeadBucket used instead of GetBucketLocation for region detection — GetBucketLocation returns null for us-east-1 (documented AWS API bug)
+- [Phase 03-s3-browsing]: 03-01: Delimiter="/" mandatory in ListObjectsV2 — without it S3 returns all objects recursively (potentially millions)
+- [Phase 03-s3-browsing]: 03-01: tea.Cmd constructors in client.go — panel model never imports S3 SDK directly, fires FetchXxxCmd closures instead
+- [Phase 03-s3-browsing]: 03-01: s3RefreshTickMsg distinct from global tickMsg — 30-second S3-specific refresh vs 1-second global clock
 
 ### Pending Todos
 
@@ -83,6 +88,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-03
-Stopped at: Completed 02-02-PLAN.md fully — status bar, TUI layout, tea.NewProgram, async credential fix; visual verification complete; ready for Plan 02-03
+Last session: 2026-03-04
+Stopped at: Completed 03-01-PLAN.md — S3 client layer (internal/ui/s3/client.go + messages.go); ready for Plan 03-02 S3 panel model
 Resume file: None
