@@ -82,7 +82,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — ECS client package: messages.go, delegate.go, client.go; promote ECS SDK to direct dependency; all paginated API calls (ListClusters/DescribeClusters, ListServices/DescribeServices batched-10, ListTasks/DescribeTasks batched-100, DescribeTaskDefinition); three typed refresh tick messages; ecsDelegate two-column row rendering
+- [x] 04-01-PLAN.md — ECS client package: messages.go, delegate.go, client.go; promote ECS SDK to direct dependency; all paginated API calls (ListClusters/DescribeClusters, ListServices/DescribeServices batched-10, ListTasks/DescribeTasks batched-100, DescribeTaskDefinition); three typed refresh tick messages; ecsDelegate two-column row rendering
 - [ ] 04-02-PLAN.md — ECS panel model (ClusterList -> ServiceList -> TaskList -> TaskDetail state machine); value-receiver Model, ascend/descend helpers, breadcrumb rendering, TaskDetail pane with navigable container list and L-key CloudWatch Logs URL opener; wire ecsPanel into rootModel with Tab-key panel switching
 
 ### Phase 5: Profile and Region Switching
@@ -110,5 +110,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Foundation | 2/2 | Complete   | 2026-03-03 |
 | 2. UI Shell | 2/2 | Complete   | 2026-03-03 |
 | 3. S3 Browsing | 3/3 | Complete   | 2026-03-04 |
-| 4. ECS Browsing | 0/2 | Not started | - |
+| 4. ECS Browsing | 1/2 | In progress | - |
 | 5. Profile and Region Switching | 0/2 | Not started | - |

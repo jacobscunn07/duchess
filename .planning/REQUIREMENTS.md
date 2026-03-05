@@ -45,12 +45,12 @@ Requirements for initial release. All operations are read-only.
 
 ### ECS
 
-- [ ] **ECS-01**: User can view a list of ECS clusters in the current region
-- [ ] **ECS-02**: User can navigate into a cluster to view its services
-- [ ] **ECS-03**: User can view service details (desired count, running count, pending count, launch type, task definition)
-- [ ] **ECS-04**: User can navigate into a service to view its running tasks
-- [ ] **ECS-05**: User can view task details (task ID, status, started at, containers with name, image, and status)
-- [ ] **ECS-06**: User can open the CloudWatch Logs console URL for a selected task's containers in their browser (L key)
+- [x] **ECS-01**: User can view a list of ECS clusters in the current region
+- [x] **ECS-02**: User can navigate into a cluster to view its services
+- [x] **ECS-03**: User can view service details (desired count, running count, pending count, launch type, task definition)
+- [x] **ECS-04**: User can navigate into a service to view its running tasks
+- [x] **ECS-05**: User can view task details (task ID, status, started at, containers with name, image, and status)
+- [x] **ECS-06**: User can open the CloudWatch Logs console URL for a selected task's containers in their browser (L key)
 
 ### Configuration
 
@@ -135,12 +135,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | S3-03 | Phase 3 | Complete |
 | S3-04 | Phase 3 | Complete |
 | S3-05 | Phase 3 | Complete |
-| ECS-01 | Phase 4 | Pending |
-| ECS-02 | Phase 4 | Pending |
-| ECS-03 | Phase 4 | Pending |
-| ECS-04 | Phase 4 | Pending |
-| ECS-05 | Phase 4 | Pending |
-| ECS-06 | Phase 4 | Pending |
+| ECS-01 | Phase 4 | Complete |
+| ECS-02 | Phase 4 | Complete |
+| ECS-03 | Phase 4 | Complete |
+| ECS-04 | Phase 4 | Complete |
+| ECS-05 | Phase 4 | Complete |
+| ECS-06 | Phase 4 | Complete |
 | CONF-01 | Phase 1 | Complete |
 | CONF-02 | Phase 1 | Complete |
 | CONF-03 | Phase 1 | Complete |
