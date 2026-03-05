@@ -79,11 +79,11 @@ Plans:
   3. User can press Enter on a service to view its running tasks; each task row shows task ID, status, started-at time, and container name/image/status
   4. Pressing `L` on a task container opens the CloudWatch Logs console URL for that container in the system browser
   5. The app does not request ECS services or task data until the user navigates into the relevant level (lazy fetch); no ThrottlingException errors appear during normal use in a large account
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: Add aws-sdk-go-v2/service/ecs to go.mod; implement ECS client interface with ListClusters, ListServices, DescribeServices, ListTasks, DescribeTasks — all with manual nextToken pagination; wire adaptive retry mode; implement lazy hierarchical fetch (fetch only visible level); refresh tickers: clusters 10s, services 10s, tasks 5s
-- [ ] 04-02: Implement ECS panel state machine (ClusterList -> ServiceList -> TaskList) with bubbles List/Table; breadcrumb header; j/k/g/G keybindings; Esc to ascend; service detail row; task detail row; L key CloudWatch Logs URL opener
+- [ ] 04-01-PLAN.md — ECS client package: messages.go, delegate.go, client.go; promote ECS SDK to direct dependency; all paginated API calls (ListClusters/DescribeClusters, ListServices/DescribeServices batched-10, ListTasks/DescribeTasks batched-100, DescribeTaskDefinition); three typed refresh tick messages; ecsDelegate two-column row rendering
+- [ ] 04-02-PLAN.md — ECS panel model (ClusterList -> ServiceList -> TaskList -> TaskDetail state machine); value-receiver Model, ascend/descend helpers, breadcrumb rendering, TaskDetail pane with navigable container list and L-key CloudWatch Logs URL opener; wire ecsPanel into rootModel with Tab-key panel switching
 
 ### Phase 5: Profile and Region Switching
 **Goal**: In-session AWS profile and region switching via modal overlays, with immediate status bar update, credential error surfacing, and correct isolation of global vs. regional service panel state
