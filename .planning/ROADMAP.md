@@ -83,7 +83,7 @@ Plans:
 
 Plans:
 - [x] 04-01-PLAN.md — ECS client package: messages.go, delegate.go, client.go; promote ECS SDK to direct dependency; all paginated API calls (ListClusters/DescribeClusters, ListServices/DescribeServices batched-10, ListTasks/DescribeTasks batched-100, DescribeTaskDefinition); three typed refresh tick messages; ecsDelegate two-column row rendering
-- [ ] 04-02-PLAN.md — ECS panel model (ClusterList -> ServiceList -> TaskList -> TaskDetail state machine); value-receiver Model, ascend/descend helpers, breadcrumb rendering, TaskDetail pane with navigable container list and L-key CloudWatch Logs URL opener; wire ecsPanel into rootModel with Tab-key panel switching
+- [x] 04-02-PLAN.md — ECS panel model (ClusterList -> ServiceList -> TaskList -> TaskDetail state machine); value-receiver Model, ascend/descend helpers, breadcrumb rendering, TaskDetail pane with navigable container list and L-key CloudWatch Logs URL opener; wire ecsPanel into rootModel with Tab-key panel switching
 
 ### Phase 4.1: Wire Configurable Refresh Interval (INSERTED — gap closure)
 **Goal**: Close CONF-01 and CONF-02 by threading cfg.RefreshInterval through NewRootModel into all panel constructors and replacing all five hardcoded tick durations with the configured value so that --refresh-interval and the config file key have an observable runtime effect
@@ -94,10 +94,10 @@ Plans:
   1. Running `duchess --profile X --refresh-interval 5s` causes the S3 and ECS panels to visibly refresh at approximately 5-second intervals (not the hardcoded 30s/10s defaults)
   2. Setting `refresh_interval: 10s` in `~/.duchess/config` produces the same effect without a CLI flag
   3. `cfg.RefreshInterval` is the sole source of truth for all tick durations; no hardcoded `30*time.Second`, `10*time.Second`, or `5*time.Second` literals remain in production code
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 04.1-01: Thread cfg.RefreshInterval through NewRootModel into s3panel.NewModel and ecspanel.NewModel; replace all 5 hardcoded tick durations; update tests
+- [ ] 04.1-01-PLAN.md — Thread cfg.RefreshInterval through NewRootModel into s3panel.NewModel and ecspanel.NewModel; parameterize all 4 tick cmd functions; fix all 12 call sites; no hardcoded durations remain
 
 ### Phase 5: Profile and Region Switching
 **Goal**: In-session AWS profile and region switching via modal overlays, with immediate status bar update, credential error surfacing, and correct isolation of global vs. regional service panel state
