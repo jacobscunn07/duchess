@@ -85,9 +85,23 @@ Plans:
 - [x] 04-01-PLAN.md — ECS client package: messages.go, delegate.go, client.go; promote ECS SDK to direct dependency; all paginated API calls (ListClusters/DescribeClusters, ListServices/DescribeServices batched-10, ListTasks/DescribeTasks batched-100, DescribeTaskDefinition); three typed refresh tick messages; ecsDelegate two-column row rendering
 - [ ] 04-02-PLAN.md — ECS panel model (ClusterList -> ServiceList -> TaskList -> TaskDetail state machine); value-receiver Model, ascend/descend helpers, breadcrumb rendering, TaskDetail pane with navigable container list and L-key CloudWatch Logs URL opener; wire ecsPanel into rootModel with Tab-key panel switching
 
+### Phase 4.1: Wire Configurable Refresh Interval (INSERTED — gap closure)
+**Goal**: Close CONF-01 and CONF-02 by threading cfg.RefreshInterval through NewRootModel into all panel constructors and replacing all five hardcoded tick durations with the configured value so that --refresh-interval and the config file key have an observable runtime effect
+**Depends on**: Phase 4
+**Requirements**: CONF-01, CONF-02
+**Gap Closure**: Closes gaps from v1.0 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. Running `duchess --profile X --refresh-interval 5s` causes the S3 and ECS panels to visibly refresh at approximately 5-second intervals (not the hardcoded 30s/10s defaults)
+  2. Setting `refresh_interval: 10s` in `~/.duchess/config` produces the same effect without a CLI flag
+  3. `cfg.RefreshInterval` is the sole source of truth for all tick durations; no hardcoded `30*time.Second`, `10*time.Second`, or `5*time.Second` literals remain in production code
+**Plans**: TBD
+
+Plans:
+- [ ] 04.1-01: Thread cfg.RefreshInterval through NewRootModel into s3panel.NewModel and ecspanel.NewModel; replace all 5 hardcoded tick durations; update tests
+
 ### Phase 5: Profile and Region Switching
 **Goal**: In-session AWS profile and region switching via modal overlays, with immediate status bar update, credential error surfacing, and correct isolation of global vs. regional service panel state
-**Depends on**: Phase 4
+**Depends on**: Phase 4.1
 **Requirements**: AUTH-01, AUTH-05
 **Success Criteria** (what must be TRUE):
   1. User can open a profile picker overlay (from any screen), select a different profile, and see the status bar update immediately with the new profile name and IAM principal — without restarting the app
@@ -103,7 +117,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 4.1 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -111,4 +125,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. UI Shell | 2/2 | Complete   | 2026-03-03 |
 | 3. S3 Browsing | 3/3 | Complete   | 2026-03-04 |
 | 4. ECS Browsing | 2/2 | Complete   | 2026-03-05 |
+| 4.1. Wire Configurable Refresh Interval | 0/1 | Not started | - |
 | 5. Profile and Region Switching | 0/2 | Not started | - |
