@@ -80,11 +80,24 @@ func renderStatusBar(m rootModel) string {
 		identityStr = m.account + " " + truncateARN(m.arn, 40)
 	}
 
-	// Build right group: identity | clock
+	// Build active panel indicator shown when ready.
+	panelIndicator := ""
+	if m.state == stateReady {
+		switch m.activePanel {
+		case panelECS:
+			panelIndicator = "[ECS]"
+		default: // panelS3
+			panelIndicator = "[S3]"
+		}
+	}
+
+	// Build right group: identity | panel indicator | clock
 	clock := m.now.Format("15:04:05")
-	rightStr := identityStyle.Render(identityStr) +
-		sep +
-		clockStyle.Render(clock)
+	rightStr := identityStyle.Render(identityStr)
+	if panelIndicator != "" {
+		rightStr += sep + versionStyle.Render(panelIndicator)
+	}
+	rightStr += sep + clockStyle.Render(clock)
 
 	// Calculate gap to fill full width.
 	gap := m.width - lipgloss.Width(leftStr) - lipgloss.Width(rightStr)

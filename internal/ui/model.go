@@ -13,6 +13,7 @@ import (
 
 	"github.com/jacobscunn07/duchess/internal/config"
 	session "github.com/jacobscunn07/duchess/internal/aws"
+	ecspanel "github.com/jacobscunn07/duchess/internal/ui/ecs"
 	s3panel "github.com/jacobscunn07/duchess/internal/ui/s3"
 )
 
@@ -25,20 +26,30 @@ const (
 	stateError
 )
 
+// activePanel represents which panel is currently shown.
+type activePanel int
+
+const (
+	panelS3  activePanel = iota
+	panelECS
+)
+
 // rootModel is the top-level Bubble Tea model for the duchess TUI.
 type rootModel struct {
-	ctx     context.Context
-	cfg     *config.Config
-	awsCfg  aws.Config
-	width   int
-	height  int
-	state   state
-	spinner spinner.Model
-	now     time.Time
-	account string
-	arn     string
-	err     error
-	s3Panel s3panel.Model
+	ctx         context.Context
+	cfg         *config.Config
+	awsCfg      aws.Config
+	width       int
+	height      int
+	state       state
+	spinner     spinner.Model
+	now         time.Time
+	account     string
+	arn         string
+	err         error
+	s3Panel     s3panel.Model
+	ecsPanel    ecspanel.Model // ECS browser panel
+	activePanel activePanel   // defaults to panelS3 (zero value)
 }
 
 // NewRootModel constructs a rootModel with safe default dimensions.
@@ -84,9 +95,10 @@ func (m rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 		if m.state == stateReady {
-			var cmd tea.Cmd
-			m.s3Panel, cmd = m.s3Panel.Update(msg)
-			return m, cmd
+			var s3Cmd, ecsCmd tea.Cmd
+			m.s3Panel, s3Cmd = m.s3Panel.Update(msg)
+			m.ecsPanel, ecsCmd = m.ecsPanel.Update(msg)
+			return m, tea.Batch(s3Cmd, ecsCmd)
 		}
 		return m, nil
 
@@ -94,6 +106,16 @@ func (m rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "q", "ctrl+c":
 			return m, tea.Quit
+
+		case "tab":
+			if m.state == stateReady {
+				if m.activePanel == panelS3 {
+					m.activePanel = panelECS
+				} else {
+					m.activePanel = panelS3
+				}
+				return m, nil
+			}
 		}
 
 	case identityLoadedMsg:
@@ -101,14 +123,15 @@ func (m rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.arn = msg.arn
 		m.awsCfg = msg.cfg
 		m.state = stateReady
-		// Compute content height (excluding status bar) for s3Panel sizing
+		// Compute content height (excluding status bar) for panel sizing
 		statusBar := renderStatusBar(m)
 		contentH := m.height - lipgloss.Height(statusBar)
 		if contentH < 1 {
 			contentH = 1
 		}
 		m.s3Panel = s3panel.NewModel(m.ctx, m.awsCfg, m.width, contentH)
-		return m, m.s3Panel.Init()
+		m.ecsPanel = ecspanel.NewModel(m.ctx, m.awsCfg, m.width, contentH)
+		return m, tea.Batch(m.s3Panel.Init(), m.ecsPanel.Init())
 
 	case identityErrMsg:
 		m.err = msg.err
@@ -126,20 +149,24 @@ func (m rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.spinner, cmd = m.spinner.Update(msg)
 			return m, cmd
 		}
-		// In stateReady, forward spinner ticks to s3Panel (for refresh spinner)
+		// In stateReady, forward spinner ticks to both panels (for refresh spinners)
 		if m.state == stateReady {
-			var cmd tea.Cmd
-			m.s3Panel, cmd = m.s3Panel.Update(msg)
-			return m, cmd
+			var s3Cmd, ecsCmd tea.Cmd
+			m.s3Panel, s3Cmd = m.s3Panel.Update(msg)
+			m.ecsPanel, ecsCmd = m.ecsPanel.Update(msg)
+			return m, tea.Batch(s3Cmd, ecsCmd)
 		}
 		return m, nil
 	}
 
-	// Forward all remaining messages to s3Panel when in stateReady
+	// Forward all remaining messages to both panels when in stateReady.
+	// Each panel only responds to its own typed messages — unexported types
+	// like clustersLoadedMsg won't match s3Panel's switch, and vice versa.
 	if m.state == stateReady {
-		var cmd tea.Cmd
-		m.s3Panel, cmd = m.s3Panel.Update(msg)
-		return m, cmd
+		var s3Cmd, ecsCmd tea.Cmd
+		m.s3Panel, s3Cmd = m.s3Panel.Update(msg)
+		m.ecsPanel, ecsCmd = m.ecsPanel.Update(msg)
+		return m, tea.Batch(s3Cmd, ecsCmd)
 	}
 
 	return m, nil
@@ -177,7 +204,12 @@ func (m rootModel) contentView() string {
 	case stateError:
 		return lipgloss.NewStyle().Width(m.width).Padding(1, 2).Render(m.err.Error())
 	default: // stateReady
-		return m.s3Panel.View()
+		switch m.activePanel {
+		case panelECS:
+			return m.ecsPanel.View()
+		default: // panelS3
+			return m.s3Panel.View()
+		}
 	}
 }
 
