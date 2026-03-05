@@ -41,16 +41,17 @@ type Model struct {
 	filterInput    textinput.Model
 	filterValue    string    // last applied filter value; "" = no filter
 	savedItems     []list.Item // items before filter; restored on Esc
-	refreshSpinner spinner.Model
-	refreshing     bool // true while 30s background refresh is in-flight
-	loading        bool // true during initial or navigation fetch
-	err            error
-	width          int
-	height         int
+	refreshSpinner  spinner.Model
+	refreshing      bool // true while background refresh is in-flight
+	loading         bool // true during initial or navigation fetch
+	err             error
+	refreshInterval time.Duration
+	width           int
+	height          int
 }
 
 // NewModel constructs a new S3 panel Model and initializes the list, filter input, and spinner.
-func NewModel(ctx context.Context, awsCfg aws.Config, width, height int) Model {
+func NewModel(ctx context.Context, awsCfg aws.Config, width, height int, refreshInterval time.Duration) Model {
 	baseClient := awss3.NewFromConfig(awsCfg)
 
 	d := s3Delegate{width: width}
@@ -73,16 +74,17 @@ func NewModel(ctx context.Context, awsCfg aws.Config, width, height int) Model {
 	rs := spinner.New(spinner.WithSpinner(spinner.MiniDot))
 
 	return Model{
-		ctx:            ctx,
-		awsCfg:         awsCfg,
-		baseClient:     baseClient,
-		state:          panelBucketList,
-		list:           l,
-		filterInput:    fi,
-		refreshSpinner: rs,
-		loading:        true,
-		width:          width,
-		height:         height,
+		ctx:             ctx,
+		awsCfg:          awsCfg,
+		baseClient:      baseClient,
+		state:           panelBucketList,
+		list:            l,
+		filterInput:     fi,
+		refreshSpinner:  rs,
+		loading:         true,
+		refreshInterval: refreshInterval,
+		width:           width,
+		height:          height,
 	}
 }
 
@@ -91,7 +93,7 @@ func NewModel(ctx context.Context, awsCfg aws.Config, width, height int) Model {
 func (m Model) Init() tea.Cmd {
 	return tea.Batch(
 		FetchBucketsCmd(m.ctx, m.baseClient),
-		S3RefreshTickCmd(),
+		S3RefreshTickCmd(m.refreshInterval),
 		m.refreshSpinner.Tick,
 	)
 }
@@ -247,7 +249,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			// No refresh needed for object detail — metadata is static
 			m.refreshing = false
 		}
-		return m, tea.Batch(refreshCmd, S3RefreshTickCmd())
+		return m, tea.Batch(refreshCmd, S3RefreshTickCmd(m.refreshInterval))
 
 	case spinner.TickMsg:
 		if m.refreshing || m.loading {

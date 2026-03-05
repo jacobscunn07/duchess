@@ -126,11 +126,11 @@ func FetchPrefixCmd(ctx context.Context, client *s3.Client, bucket, prefix strin
 	}
 }
 
-// S3RefreshTickCmd returns a tea.Cmd that fires s3RefreshTickMsg after 30 seconds.
+// S3RefreshTickCmd returns a tea.Cmd that fires s3RefreshTickMsg after d.
 // This is distinct from the global 1-second tickMsg in internal/ui/messages.go —
-// it drives S3 data refresh at a longer interval appropriate for bucket/object listings.
-func S3RefreshTickCmd() tea.Cmd {
-	return tea.Tick(30*time.Second, func(t time.Time) tea.Msg {
+// it drives S3 data refresh at the interval configured by the user.
+func S3RefreshTickCmd(d time.Duration) tea.Cmd {
+	return tea.Tick(d, func(t time.Time) tea.Msg {
 		return s3RefreshTickMsg{}
 	})
 }
