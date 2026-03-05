@@ -125,5 +125,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 4.1 → 5
 | 2. UI Shell | 2/2 | Complete   | 2026-03-03 |
 | 3. S3 Browsing | 3/3 | Complete   | 2026-03-04 |
 | 4. ECS Browsing | 2/2 | Complete   | 2026-03-05 |
-| 4.1. Wire Configurable Refresh Interval | 0/1 | Not started | - |
+| 4.1. Wire Configurable Refresh Interval | 1/1 | Complete   | 2026-03-05 |
 | 5. Profile and Region Switching | 0/2 | Not started | - |
