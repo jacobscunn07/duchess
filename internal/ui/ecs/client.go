@@ -208,27 +208,26 @@ func FetchTaskDetailCmd(ctx context.Context, client *awsecs.Client, clusterArn, 
 	}
 }
 
-// ECSClusterRefreshTickCmd returns a tea.Cmd that fires ecsClusterRefreshTickMsg
-// after 10 seconds. Used to refresh cluster list data.
-func ECSClusterRefreshTickCmd() tea.Cmd {
-	return tea.Tick(10*time.Second, func(t time.Time) tea.Msg {
+// ECSClusterRefreshTickCmd returns a tea.Cmd that fires ecsClusterRefreshTickMsg after d.
+// Used to refresh cluster list data at the user-configured interval.
+func ECSClusterRefreshTickCmd(d time.Duration) tea.Cmd {
+	return tea.Tick(d, func(t time.Time) tea.Msg {
 		return ecsClusterRefreshTickMsg{}
 	})
 }
 
-// ECSServiceRefreshTickCmd returns a tea.Cmd that fires ecsServiceRefreshTickMsg
-// after 10 seconds. Used to refresh service list data.
-func ECSServiceRefreshTickCmd() tea.Cmd {
-	return tea.Tick(10*time.Second, func(t time.Time) tea.Msg {
+// ECSServiceRefreshTickCmd returns a tea.Cmd that fires ecsServiceRefreshTickMsg after d.
+// Used to refresh service list data at the user-configured interval.
+func ECSServiceRefreshTickCmd(d time.Duration) tea.Cmd {
+	return tea.Tick(d, func(t time.Time) tea.Msg {
 		return ecsServiceRefreshTickMsg{}
 	})
 }
 
-// ECSTaskRefreshTickCmd returns a tea.Cmd that fires ecsTaskRefreshTickMsg
-// after 5 seconds. Used to refresh task list data (faster than cluster/service
-// because task status changes more frequently).
-func ECSTaskRefreshTickCmd() tea.Cmd {
-	return tea.Tick(5*time.Second, func(t time.Time) tea.Msg {
+// ECSTaskRefreshTickCmd returns a tea.Cmd that fires ecsTaskRefreshTickMsg after d.
+// Used to refresh task list data at the user-configured interval.
+func ECSTaskRefreshTickCmd(d time.Duration) tea.Cmd {
+	return tea.Tick(d, func(t time.Time) tea.Msg {
 		return ecsTaskRefreshTickMsg{}
 	})
 }

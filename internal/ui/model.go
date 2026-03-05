@@ -129,8 +129,9 @@ func (m rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if contentH < 1 {
 			contentH = 1
 		}
-		m.s3Panel = s3panel.NewModel(m.ctx, m.awsCfg, m.width, contentH)
-		m.ecsPanel = ecspanel.NewModel(m.ctx, m.awsCfg, m.width, contentH)
+		refreshInterval := time.Duration(m.cfg.RefreshInterval) * time.Second
+		m.s3Panel = s3panel.NewModel(m.ctx, m.awsCfg, m.width, contentH, refreshInterval)
+		m.ecsPanel = ecspanel.NewModel(m.ctx, m.awsCfg, m.width, contentH, refreshInterval)
 		return m, tea.Batch(m.s3Panel.Init(), m.ecsPanel.Init())
 
 	case identityErrMsg:

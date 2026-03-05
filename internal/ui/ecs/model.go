@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsecs "github.com/aws/aws-sdk-go-v2/service/ecs"
@@ -44,13 +45,14 @@ type Model struct {
 	refreshing      bool
 	loading         bool
 	err             error
+	refreshInterval time.Duration
 	width           int
 	height          int
 }
 
 // NewModel constructs a new ECS panel Model and initializes the list and spinner.
 // Mirrors s3.NewModel exactly in value-receiver pattern and initialization style.
-func NewModel(ctx context.Context, awsCfg aws.Config, width, height int) Model {
+func NewModel(ctx context.Context, awsCfg aws.Config, width, height int, refreshInterval time.Duration) Model {
 	client := awsecs.NewFromConfig(awsCfg)
 	region := awsCfg.Region
 
@@ -69,16 +71,17 @@ func NewModel(ctx context.Context, awsCfg aws.Config, width, height int) Model {
 	rs := spinner.New(spinner.WithSpinner(spinner.MiniDot))
 
 	return Model{
-		ctx:            ctx,
-		awsCfg:         awsCfg,
-		client:         client,
-		region:         region,
-		state:          panelClusterList,
-		list:           l,
-		refreshSpinner: rs,
-		loading:        true,
-		width:          width,
-		height:         height,
+		ctx:             ctx,
+		awsCfg:          awsCfg,
+		client:          client,
+		region:          region,
+		state:           panelClusterList,
+		list:            l,
+		refreshSpinner:  rs,
+		loading:         true,
+		refreshInterval: refreshInterval,
+		width:           width,
+		height:          height,
 	}
 }
 
@@ -89,7 +92,7 @@ func NewModel(ctx context.Context, awsCfg aws.Config, width, height int) Model {
 func (m Model) Init() tea.Cmd {
 	return tea.Batch(
 		FetchClustersCmd(m.ctx, m.client),
-		ECSClusterRefreshTickCmd(),
+		ECSClusterRefreshTickCmd(m.refreshInterval),
 		m.refreshSpinner.Tick,
 	)
 }
@@ -247,22 +250,22 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		} else {
 			m.refreshing = false
 		}
-		return m, tea.Batch(cmd, ECSClusterRefreshTickCmd())
+		return m, tea.Batch(cmd, ECSClusterRefreshTickCmd(m.refreshInterval))
 
 	case ecsServiceRefreshTickMsg:
 		if m.state == panelServiceList && m.selectedCluster != "" {
 			m.refreshing = true
-			return m, tea.Batch(FetchServicesCmd(m.ctx, m.client, m.selectedCluster), ECSServiceRefreshTickCmd())
+			return m, tea.Batch(FetchServicesCmd(m.ctx, m.client, m.selectedCluster), ECSServiceRefreshTickCmd(m.refreshInterval))
 		}
-		return m, ECSServiceRefreshTickCmd()
+		return m, ECSServiceRefreshTickCmd(m.refreshInterval)
 
 	case ecsTaskRefreshTickMsg:
 		if m.state == panelTaskList && m.selectedCluster != "" && m.selectedService != nil {
 			serviceArn := aws.ToString(m.selectedService.service.ServiceArn)
 			m.refreshing = true
-			return m, tea.Batch(FetchTasksCmd(m.ctx, m.client, m.selectedCluster, serviceArn), ECSTaskRefreshTickCmd())
+			return m, tea.Batch(FetchTasksCmd(m.ctx, m.client, m.selectedCluster, serviceArn), ECSTaskRefreshTickCmd(m.refreshInterval))
 		}
-		return m, ECSTaskRefreshTickCmd()
+		return m, ECSTaskRefreshTickCmd(m.refreshInterval)
 
 	case spinner.TickMsg:
 		if m.refreshing || m.loading {
@@ -511,7 +514,7 @@ func (m Model) descendIntoSelected() (Model, tea.Cmd) {
 		return m, tea.Batch(
 			cmd,
 			FetchServicesCmd(m.ctx, m.client, m.selectedCluster),
-			ECSServiceRefreshTickCmd(),
+			ECSServiceRefreshTickCmd(m.refreshInterval),
 		)
 
 	case panelServiceList:
@@ -527,7 +530,7 @@ func (m Model) descendIntoSelected() (Model, tea.Cmd) {
 		return m, tea.Batch(
 			cmd,
 			FetchTasksCmd(m.ctx, m.client, m.selectedCluster, serviceArn),
-			ECSTaskRefreshTickCmd(),
+			ECSTaskRefreshTickCmd(m.refreshInterval),
 		)
 
 	case panelTaskList:
