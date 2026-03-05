@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: in_progress
-last_updated: "2026-03-05T02:07:38Z"
+status: unknown
+last_updated: "2026-03-05T02:14:34.389Z"
 progress:
-  total_phases: 5
-  completed_phases: 3
-  total_plans: 11
-  completed_plans: 8
+  total_phases: 4
+  completed_phases: 4
+  total_plans: 9
+  completed_plans: 9
 ---
 
 # Project State
@@ -50,6 +50,7 @@ Progress: [████████░░] 80%
 - Trend: 04-01 rapid client package creation (pure code generation, no human checkpoints)
 
 *Updated after each plan completion*
+| Phase 04-ecs-browsing P02 | 3 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,10 @@ Recent decisions affecting current work:
 - [Phase 04-ecs-browsing]: 04-01: ListTasks requires short service name (not ARN) — extracted via strings.LastIndex; DescribeServices batched at 10 (hard limit), DescribeTasks batched at 100 (hard limit)
 - [Phase 04-ecs-browsing]: 04-01: buildCloudWatchURL uses url.PathEscape then replaces % with $25 to produce $252F encoding required by CloudWatch Logs console deep-links
 - [Phase 04-ecs-browsing]: 04-01: go mod tidy (not go get alone) promotes ECS SDK from indirect to direct — indirect marker removed only after source files import the package
+- [Phase 04-ecs-browsing]: Tab key toggle uses simple activePanel int constant in rootModel — no complex routing needed since all messages are forwarded to both panels
+- [Phase 04-ecs-browsing]: Both panels receive ALL messages in stateReady — unexported typed messages (clustersLoadedMsg etc.) are package-local so cross-panel interference is structurally impossible
+- [Phase 04-ecs-browsing]: taskDetailLoadedMsg updates m.selectedTask.task to the refreshed task — the ecsItem set during descendIntoSelected may be stale
+- [Phase 04-ecs-browsing]: Service ticker and task ticker started on descent (not in Init) — avoids three concurrent refresh tickers when user is only looking at cluster list
 
 ### Pending Todos
 
