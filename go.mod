@@ -15,6 +15,7 @@ require (
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/dustin/go-humanize v1.0.1
 	github.com/muesli/termenv v0.16.0
+	github.com/rmhubbert/bubbletea-overlay v0.6.5
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
 	gopkg.in/ini.v1 v1.67.1

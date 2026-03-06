@@ -21,3 +21,8 @@ type identityErrMsg struct {
 
 // tickMsg is sent every second to advance the clock in the status bar.
 type tickMsg time.Time
+
+// profileSelectedMsg is sent when the user confirms a profile selection in the overlay.
+type profileSelectedMsg struct {
+	profile string
+}

@@ -10,9 +10,11 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
+	btoverlay "github.com/rmhubbert/bubbletea-overlay"
 
 	"github.com/jacobscunn07/duchess/internal/config"
 	session "github.com/jacobscunn07/duchess/internal/aws"
+	overlay "github.com/jacobscunn07/duchess/internal/ui/overlay"
 	ecspanel "github.com/jacobscunn07/duchess/internal/ui/ecs"
 	s3panel "github.com/jacobscunn07/duchess/internal/ui/s3"
 )
@@ -36,20 +38,24 @@ const (
 
 // rootModel is the top-level Bubble Tea model for the duchess TUI.
 type rootModel struct {
-	ctx         context.Context
-	cfg         *config.Config
-	awsCfg      aws.Config
-	width       int
-	height      int
-	state       state
-	spinner     spinner.Model
-	now         time.Time
-	account     string
-	arn         string
-	err         error
-	s3Panel     s3panel.Model
-	ecsPanel    ecspanel.Model // ECS browser panel
-	activePanel activePanel   // defaults to panelS3 (zero value)
+	ctx                  context.Context    // root context (parent of session contexts)
+	sessionCtx           context.Context    // per-session cancellable context
+	cancelSession        context.CancelFunc // cancels sessionCtx and all its children
+	cfg                  *config.Config
+	awsCfg               aws.Config
+	width                int
+	height               int
+	state                state
+	spinner              spinner.Model
+	now                  time.Time
+	account              string
+	arn                  string
+	err                  error
+	s3Panel              s3panel.Model
+	ecsPanel             ecspanel.Model      // ECS browser panel
+	activePanel          activePanel         // defaults to panelS3 (zero value)
+	isProfileOverlayOpen bool
+	profileOverlay       overlay.ProfileOverlay
 }
 
 // NewRootModel constructs a rootModel with safe default dimensions.
@@ -68,21 +74,25 @@ func NewRootModel(ctx context.Context, cfg *config.Config) rootModel {
 		spinner.WithStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("205"))),
 	)
 
+	sessionCtx, cancelSession := context.WithCancel(ctx)
+
 	return rootModel{
-		ctx:     ctx,
-		cfg:     cfg,
-		width:   80,
-		height:  24,
-		state:   stateLoading,
-		spinner: s,
-		now:     time.Now(),
+		ctx:           ctx,
+		sessionCtx:    sessionCtx,
+		cancelSession: cancelSession,
+		cfg:           cfg,
+		width:         80,
+		height:        24,
+		state:         stateLoading,
+		spinner:       s,
+		now:           time.Now(),
 	}
 }
 
 // Init implements tea.Model. Returns a batch of startup commands.
 func (m rootModel) Init() tea.Cmd {
 	return tea.Batch(
-		fetchIdentityCmd(m.ctx, m.cfg.Profile, m.cfg.Region),
+		fetchIdentityCmd(m.sessionCtx, m.cfg.Profile, m.cfg.Region),
 		m.spinner.Tick,
 		tickCmd(),
 	)
@@ -103,6 +113,27 @@ func (m rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
+		// Overlay key interception — must return before reaching panel fallthrough.
+		if m.isProfileOverlayOpen {
+			switch msg.String() {
+			case "esc":
+				m.isProfileOverlayOpen = false
+				return m, nil
+			case "enter":
+				selected := m.profileOverlay.SelectedProfile()
+				if selected != "" {
+					m.isProfileOverlayOpen = false
+					return m, func() tea.Msg { return profileSelectedMsg{profile: selected} }
+				}
+				m.isProfileOverlayOpen = false
+				return m, nil
+			default:
+				var cmd tea.Cmd
+				m.profileOverlay, cmd = m.profileOverlay.Update(msg)
+				return m, cmd
+			}
+		}
+
 		switch msg.String() {
 		case "q", "ctrl+c":
 			return m, tea.Quit
@@ -115,6 +146,18 @@ func (m rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.activePanel = panelS3
 				}
 				return m, nil
+			}
+
+		case "p":
+			if m.state == stateReady || m.state == stateError {
+				profiles, err := overlay.ListAWSProfiles()
+				if err != nil || len(profiles) == 0 {
+					// Gracefully skip — no profiles to show.
+					return m, nil
+				}
+				m.isProfileOverlayOpen = true
+				m.profileOverlay = overlay.NewProfileOverlay(m.cfg.Profile, m.width, m.height, profiles)
+				return m, m.profileOverlay.Init()
 			}
 		}
 
@@ -130,14 +173,37 @@ func (m rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			contentH = 1
 		}
 		refreshInterval := time.Duration(m.cfg.RefreshInterval) * time.Second
-		m.s3Panel = s3panel.NewModel(m.ctx, m.awsCfg, m.width, contentH, refreshInterval)
-		m.ecsPanel = ecspanel.NewModel(m.ctx, m.awsCfg, m.width, contentH, refreshInterval)
+		m.s3Panel = s3panel.NewModel(m.sessionCtx, m.awsCfg, m.width, contentH, refreshInterval)
+		m.ecsPanel = ecspanel.NewModel(m.sessionCtx, m.awsCfg, m.width, contentH, refreshInterval)
 		return m, tea.Batch(m.s3Panel.Init(), m.ecsPanel.Init())
 
 	case identityErrMsg:
 		m.err = msg.err
 		m.state = stateError
 		return m, nil
+
+	case profileSelectedMsg:
+		// Cancel in-flight goroutines from the current session.
+		if m.cancelSession != nil {
+			m.cancelSession()
+		}
+		// Create a new cancellable session context.
+		sessionCtx, cancel := context.WithCancel(m.ctx)
+		m.sessionCtx = sessionCtx
+		m.cancelSession = cancel
+		// Update config immediately so the status bar shows the new profile name
+		// before identity confirms.
+		m.cfg.Profile = msg.profile
+		// Reset to loading state; clear identity fields.
+		m.state = stateLoading
+		m.account = ""
+		m.arn = ""
+		m.err = nil
+		// Re-fetch identity with new profile using the new session context.
+		return m, tea.Batch(
+			fetchIdentityCmd(m.sessionCtx, m.cfg.Profile, m.cfg.Region),
+			m.spinner.Tick,
+		)
 
 	case tickMsg:
 		m.now = time.Time(msg)
@@ -173,22 +239,29 @@ func (m rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-// View implements tea.Model. Returns the current string representation.
-// Returns "" when width=0 to guard against zero-dimension first render.
-func (m rootModel) View() string {
-	if m.width == 0 {
-		return ""
-	}
+// baseView returns the full panel + status bar view without any overlay.
+func (m rootModel) baseView() string {
 	statusBar := renderStatusBar(m)
 	contentH := m.height - lipgloss.Height(statusBar)
 	if contentH < 0 {
 		contentH = 0
 	}
-	content := lipgloss.NewStyle().
-		Width(m.width).
-		Height(contentH).
-		Render(m.contentView())
+	content := lipgloss.NewStyle().Width(m.width).Height(contentH).Render(m.contentView())
 	return lipgloss.JoinVertical(lipgloss.Left, content, statusBar)
+}
+
+// View implements tea.Model. Returns the current string representation.
+// Returns "" when width=0 to guard against zero-dimension first render.
+// When the profile overlay is open, composites it over baseView().
+func (m rootModel) View() string {
+	if m.width == 0 {
+		return ""
+	}
+	bg := m.baseView()
+	if m.isProfileOverlayOpen {
+		return btoverlay.Composite(m.profileOverlay.View(), bg, btoverlay.Center, btoverlay.Center, 0, 0)
+	}
+	return bg
 }
 
 // contentView returns the main content area string based on the current model state.
