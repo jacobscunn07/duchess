@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: UI Shell** - Bubble Tea program with persistent status bar, loading states, and clean terminal handling — no resource panels yet (completed 2026-03-04)
 - [x] **Phase 3: S3 Browsing** - Full S3 navigation from bucket list through prefix hierarchy to object metadata, with live refresh and filter (completed 2026-03-04)
 - [x] **Phase 4: ECS Browsing** - Full ECS navigation from cluster list through service detail to task detail, with lazy hierarchical fetch and live refresh (completed 2026-03-05)
-- [ ] **Phase 5: Profile and Region Switching** - In-session profile and region switching overlays that correctly isolate global vs. regional service behavior
+- [x] **Phase 5: Profile and Region Switching** - In-session profile and region switching overlays that correctly isolate global vs. regional service behavior (completed 2026-03-06)
 
 ## Phase Details
 
@@ -127,4 +127,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 4.1 → 5
 | 3. S3 Browsing | 3/3 | Complete   | 2026-03-04 |
 | 4. ECS Browsing | 2/2 | Complete   | 2026-03-05 |
 | 4.1. Wire Configurable Refresh Interval | 2/2 | Complete   | 2026-03-06 |
-| 5. Profile and Region Switching | 0/2 | Not started | - |
+| 5. Profile and Region Switching | 2/2 | Complete   | 2026-03-06 |

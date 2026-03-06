@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-06T17:59:25.000Z"
+last_updated: "2026-03-06T18:06:00.214Z"
 progress:
-  total_phases: 5
-  completed_phases: 5
+  total_phases: 6
+  completed_phases: 6
   total_plans: 13
-  completed_plans: 12
+  completed_plans: 13
 ---
 
 # Project State
@@ -22,10 +22,10 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 
 ## Current Position
 
-Phase: 5 of 5 (Profile and Region Switching) — IN PROGRESS
-Plan: 1 of 2 completed
-Status: 05-01 complete — profile overlay with per-session context cancellation delivered (AUTH-01)
-Last activity: 2026-03-06 — 05-01 executed; ProfileOverlay, sessionCtx/cancelSession, p-key handler, btoverlay compositing, profileSelectedMsg lifecycle all shipped
+Phase: 5 of 5 (Profile and Region Switching) — COMPLETE
+Plan: 2 of 2 completed
+Status: 05-02 complete — region overlay with context.Canceled guards delivered (AUTH-05)
+Last activity: 2026-03-06 — 05-02 executed; RegionOverlay, r-key handler, regionSelectedMsg lifecycle, context.Canceled guards in 7 error handlers all shipped
 
 Progress: [██████████] 100%
 
@@ -55,6 +55,7 @@ Progress: [██████████] 100%
 | Phase 04.1-refresh-interval P01 | 3 | 2 tasks | 5 files |
 | Phase 04.1-refresh-interval P02 | 2 | 2 tasks | 3 files |
 | Phase 05-profile-and-region-switching P01 | 3 | 2 tasks | 5 files |
+| Phase 05-profile-and-region-switching P02 | 2 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,9 @@ Recent decisions affecting current work:
 - [Phase 05-profile-and-region-switching]: 05-01: m.cfg.Profile updated immediately on profileSelectedMsg before identity confirms — status bar shows new profile during loading
 - [Phase 05-profile-and-region-switching]: 05-01: cancelSession called before creating new sessionCtx — all in-flight goroutines from previous session cancelled atomically
 - [Phase 05-profile-and-region-switching]: 05-01: baseView() extracted from View() — prevents recursive View() call when compositing overlay background
+- [Phase 05-profile-and-region-switching]: r key opens region overlay in both stateReady and stateError — consistent with p key behavior
+- [Phase 05-profile-and-region-switching]: S3 panel NOT reset on region switch — bucket list is global; ECS is region-specific
+- [Phase 05-profile-and-region-switching]: context.Canceled guard placed FIRST in all 7 error handlers before field mutations — prevents stale state on rapid switching
 
 ### Pending Todos
 
@@ -120,5 +124,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: Completed 05-01-PLAN.md — profile overlay and per-session context cancellation delivered; ready for 05-02 region switching
+Stopped at: Completed 05-02-PLAN.md — region overlay and context.Canceled guards delivered; Phase 5 complete
 Resume file: None

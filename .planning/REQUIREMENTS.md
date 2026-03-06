@@ -13,7 +13,7 @@ Requirements for initial release. All operations are read-only.
 - [x] **AUTH-02**: App authenticates with named profiles (access key + secret key)
 - [x] **AUTH-03**: App authenticates with role assumption profiles (role_arn + source_profile)
 - [x] **AUTH-04**: App authenticates with AWS SSO profiles (sso_start_url / sso_account_id)
-- [ ] **AUTH-05**: User can switch between AWS regions without restarting the app
+- [x] **AUTH-05**: User can switch between AWS regions without restarting the app
 - [x] **AUTH-06**: App displays an actionable error when credentials are expired or invalid (e.g., "run aws sso login --profile X")
 
 ### Navigation
@@ -115,7 +115,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-02 | Phase 1 | Complete |
 | AUTH-03 | Phase 1 | Complete |
 | AUTH-04 | Phase 1 | Complete |
-| AUTH-05 | Phase 5 | Pending |
+| AUTH-05 | Phase 5 | Complete |
 | AUTH-06 | Phase 1 | Complete |
 | NAV-01 | Phase 3 | Complete |
 | NAV-02 | Phase 3 | Complete |
