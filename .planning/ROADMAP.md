@@ -109,11 +109,11 @@ Plans:
   2. User can open a region picker overlay, select a different region, and see the ECS cluster list refresh with clusters from the new region; the S3 bucket list remains unchanged (S3 is global)
   3. When a switched-to profile has an expired SSO token, the S3 and ECS panels display an inline error containing the `aws sso login --profile <name>` command rather than blank content or a crash
   4. Profile names are read directly from `~/.aws/config` via ini.v1 (no SDK enumeration API) and display correctly without the "profile " prefix
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: Implement profile enumeration via ini.v1 parsing of ~/.aws/config (strip "profile " prefix); implement profile picker modal (tea.Model overlay); wire ProfileSelectedMsg to root model to rebuild AWS session and cancel in-flight goroutines via context cancellation; refresh STS identity and propagate to status bar
-- [ ] 05-02: Implement region picker modal with AWS region list; wire RegionSelectedMsg to root model; reset ECS panel state on region change; confirm S3 panel does not reset; surface InvalidTokenError and role-chain expiry as specific inline error messages distinct from generic API failures
+- [ ] 05-01-PLAN.md — Profile overlay (ini.v1 enumeration, bubbles/list, btoverlay compositing); add ini.v1 + bubbletea-overlay deps; per-session context cancellation in rootModel; p-key handler; profileSelectedMsg wired to identity re-fetch and full panel reset
+- [ ] 05-02-PLAN.md — Region overlay (hardcoded 30-region list, bubbles/list, btoverlay compositing); r-key handler; regionSelectedMsg wired to ECS-only panel reset (S3 unchanged); context.Canceled guard in all 7 panel error handlers
 
 ## Progress
 
