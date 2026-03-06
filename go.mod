@@ -1,6 +1,6 @@
 module github.com/jacobscunn07/duchess
 
-go 1.24.2
+go 1.25.4
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.41.3
@@ -16,7 +16,8 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/muesli/termenv v0.16.0
 	github.com/spf13/cobra v1.10.2
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.11.1
+	gopkg.in/ini.v1 v1.67.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -58,5 +59,5 @@ require (
 	github.com/spf13/pflag v1.0.9 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	golang.org/x/sys v0.38.0 // indirect
-	golang.org/x/text v0.3.8 // indirect
+	golang.org/x/text v0.31.0 // indirect
 )
