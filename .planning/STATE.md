@@ -18,14 +18,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-02)
 
 **Core value:** Navigate your AWS resources across accounts and regions in one terminal session — no console switching, no `--profile` flags, no context thrash.
-**Current focus:** Phase 4.1 — Configurable Refresh Interval (gap closure)
+**Current focus:** Phase 5 — Profile and Region Switching
 
 ## Current Position
 
-Phase: 4.1 of 5 (Refresh Interval — gap closure) — COMPLETE
-Plan: 2 of 2 completed — Plan 04.1-02 complete
-Status: Plan 04.1-02 complete; status bar shows interval as "Xs"; S3 and ECS breadcrumbs show last-refreshed HH:MM:SS timestamp; CONF-01 and CONF-02 fully closed
-Last activity: 2026-03-05 — Plan 04.1-02 complete: internal/ui/status.go + internal/ui/s3/model.go + internal/ui/ecs/model.go
+Phase: 5 of 5 (Profile and Region Switching) — IN PROGRESS
+Plan: 0 of 2 completed
+Status: Phase context captured (05-CONTEXT.md); ready for planning
+Last activity: 2026-03-06 — Phase 5 context gathered; keybindings, overlay style, panel reset strategy, credential error UX, and context cancellation pattern decided
 
 Progress: [██████████] 100%
 
@@ -113,6 +113,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05
-Stopped at: Completed 04.1-02-PLAN.md — UI observability added; status bar shows interval, breadcrumbs show last-refreshed timestamp; CONF-01 and CONF-02 fully closed
+Last session: 2026-03-06
+Stopped at: Phase 5 context captured — 05-CONTEXT.md written; all implementation decisions locked (keybindings p/r, overlay style, panel reset strategy, credential error UX, per-session context cancellation)
 Resume file: None
