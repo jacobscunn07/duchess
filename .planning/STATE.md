@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-05T22:50:34.220Z"
+last_updated: "2026-03-06T03:07:20.150Z"
 progress:
   total_phases: 5
   completed_phases: 5
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 11
+  completed_plans: 11
 ---
 
 # Project State
@@ -23,9 +23,9 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 ## Current Position
 
 Phase: 4.1 of 5 (Refresh Interval — gap closure) — COMPLETE
-Plan: 1 of 1 completed — Plan 04.1-01 complete
-Status: Plan 04.1-01 complete; all hardcoded S3/ECS tick durations replaced with parameterized time.Duration; cfg.RefreshInterval threaded end-to-end; go build and go vet pass
-Last activity: 2026-03-05 — Plan 04.1-01 complete: internal/ui/s3/client.go + internal/ui/s3/model.go + internal/ui/ecs/client.go + internal/ui/ecs/model.go + internal/ui/model.go
+Plan: 2 of 2 completed — Plan 04.1-02 complete
+Status: Plan 04.1-02 complete; status bar shows interval as "Xs"; S3 and ECS breadcrumbs show last-refreshed HH:MM:SS timestamp; CONF-01 and CONF-02 fully closed
+Last activity: 2026-03-05 — Plan 04.1-02 complete: internal/ui/status.go + internal/ui/s3/model.go + internal/ui/ecs/model.go
 
 Progress: [██████████] 100%
 
@@ -44,15 +44,16 @@ Progress: [██████████] 100%
 | Phase 2 | 2/2 | 17 min | 8.5 min |
 | Phase 3 | 3/3 | 50 min | 16.7 min |
 | Phase 4 | 2/3 | 28 min | 14 min |
-| Phase 4.1 | 1/1 | 3 min | 3 min |
+| Phase 4.1 | 2/2 | 5 min | 2.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-02 (45 min), 03-03 (3 min), 04-01 (3 min), 04-02 (25 min), 04.1-01 (3 min)
-- Trend: fast execution; gap closure plan with surgical file changes
+- Last 5 plans: 03-03 (3 min), 04-01 (3 min), 04-02 (25 min), 04.1-01 (3 min), 04.1-02 (2 min)
+- Trend: fast execution; gap closure plans with surgical file changes
 
 *Updated after each plan completion*
 | Phase 04-ecs-browsing P02 | 3 | 2 tasks | 3 files |
 | Phase 04.1-refresh-interval P01 | 3 | 2 tasks | 5 files |
+| Phase 04.1-refresh-interval P02 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,8 @@ Recent decisions affecting current work:
 - [Phase 04.1-refresh-interval]: refreshInterval stored on panel Model struct so all tick-rescheduling call sites use m.refreshInterval without threading extra arguments through message handlers
 - [Phase 04.1-refresh-interval]: int->Duration conversion (time.Duration(m.cfg.RefreshInterval)*time.Second) done exactly once in identityLoadedMsg handler — not repeated at individual call sites
 - [Phase 04.1-refresh-interval]: tickCmd() in model.go left unchanged — it drives the 1-second status bar clock and is unrelated to configurable refresh
+- [Phase 04.1-refresh-interval]: intervalStyle reuses color 33 for visual consistency in status bar left group; lastRefreshed.IsZero() guard prevents stale timestamp at startup
+- [Phase 04.1-refresh-interval]: bucketsLoadedMsg now also clears m.refreshing (was only clearing m.loading) — s3RefreshTickMsg sets refreshing=true and FetchBucketsCmd is the refresh command
 
 ### Pending Todos
 
@@ -111,5 +114,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-05
-Stopped at: Completed 04.1-01-PLAN.md — configurable refresh interval wired end-to-end; CONF-01 and CONF-02 closed
+Stopped at: Completed 04.1-02-PLAN.md — UI observability added; status bar shows interval, breadcrumbs show last-refreshed timestamp; CONF-01 and CONF-02 fully closed
 Resume file: None
