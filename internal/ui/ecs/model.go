@@ -2,6 +2,7 @@ package ecs
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -192,6 +193,9 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		return m, cmd
 
 	case clustersErrMsg:
+		if errors.Is(msg.err, context.Canceled) {
+			return m, nil
+		}
 		m.loading = false
 		m.refreshing = false
 		m.err = msg.err
@@ -209,6 +213,9 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		return m, cmd
 
 	case servicesErrMsg:
+		if errors.Is(msg.err, context.Canceled) {
+			return m, nil
+		}
 		m.loading = false
 		m.refreshing = false
 		m.err = msg.err
@@ -226,6 +233,9 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		return m, cmd
 
 	case tasksErrMsg:
+		if errors.Is(msg.err, context.Canceled) {
+			return m, nil
+		}
 		m.loading = false
 		m.refreshing = false
 		m.err = msg.err
@@ -242,6 +252,9 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		return m, nil
 
 	case taskDetailErrMsg:
+		if errors.Is(msg.err, context.Canceled) {
+			return m, nil
+		}
 		m.loading = false
 		m.err = msg.err
 		return m, nil

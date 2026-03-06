@@ -26,3 +26,8 @@ type tickMsg time.Time
 type profileSelectedMsg struct {
 	profile string
 }
+
+// regionSelectedMsg is sent when the user confirms a region selection in the overlay.
+type regionSelectedMsg struct {
+	region string
+}

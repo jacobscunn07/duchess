@@ -56,6 +56,8 @@ type rootModel struct {
 	activePanel          activePanel         // defaults to panelS3 (zero value)
 	isProfileOverlayOpen bool
 	profileOverlay       overlay.ProfileOverlay
+	isRegionOverlayOpen  bool
+	regionOverlay        overlay.RegionOverlay
 }
 
 // NewRootModel constructs a rootModel with safe default dimensions.
@@ -134,6 +136,26 @@ func (m rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
+		if m.isRegionOverlayOpen {
+			switch msg.String() {
+			case "esc":
+				m.isRegionOverlayOpen = false
+				return m, nil
+			case "enter":
+				selected := m.regionOverlay.SelectedRegion()
+				if selected != "" {
+					m.isRegionOverlayOpen = false
+					return m, func() tea.Msg { return regionSelectedMsg{region: selected} }
+				}
+				m.isRegionOverlayOpen = false
+				return m, nil
+			default:
+				var cmd tea.Cmd
+				m.regionOverlay, cmd = m.regionOverlay.Update(msg)
+				return m, cmd
+			}
+		}
+
 		switch msg.String() {
 		case "q", "ctrl+c":
 			return m, tea.Quit
@@ -158,6 +180,13 @@ func (m rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.isProfileOverlayOpen = true
 				m.profileOverlay = overlay.NewProfileOverlay(m.cfg.Profile, m.width, m.height, profiles)
 				return m, m.profileOverlay.Init()
+			}
+
+		case "r":
+			if m.state == stateReady || m.state == stateError {
+				m.isRegionOverlayOpen = true
+				m.regionOverlay = overlay.NewRegionOverlay(m.cfg.Region, m.width, m.height)
+				return m, m.regionOverlay.Init()
 			}
 		}
 
@@ -204,6 +233,29 @@ func (m rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			fetchIdentityCmd(m.sessionCtx, m.cfg.Profile, m.cfg.Region),
 			m.spinner.Tick,
 		)
+
+	case regionSelectedMsg:
+		if m.cancelSession != nil {
+			m.cancelSession()
+		}
+		sessionCtx, cancel := context.WithCancel(m.ctx)
+		m.sessionCtx = sessionCtx
+		m.cancelSession = cancel
+		// Update status bar immediately — cfg.Region is read by renderStatusBar
+		m.cfg.Region = msg.region
+		m.isRegionOverlayOpen = false
+		// Update awsCfg region — CRITICAL: must set before passing to NewModel
+		m.awsCfg.Region = msg.region
+		// Reset ECS panel only — S3 is global (bucket list is not region-specific)
+		statusBar := renderStatusBar(m)
+		contentH := m.height - lipgloss.Height(statusBar)
+		if contentH < 1 {
+			contentH = 1
+		}
+		refreshInterval := time.Duration(m.cfg.RefreshInterval) * time.Second
+		m.ecsPanel = ecspanel.NewModel(m.sessionCtx, m.awsCfg, m.width, contentH, refreshInterval)
+		// S3 panel intentionally NOT reset (S3 is global)
+		return m, m.ecsPanel.Init()
 
 	case tickMsg:
 		m.now = time.Time(msg)
@@ -260,6 +312,9 @@ func (m rootModel) View() string {
 	bg := m.baseView()
 	if m.isProfileOverlayOpen {
 		return btoverlay.Composite(m.profileOverlay.View(), bg, btoverlay.Center, btoverlay.Center, 0, 0)
+	}
+	if m.isRegionOverlayOpen {
+		return btoverlay.Composite(m.regionOverlay.View(), bg, btoverlay.Center, btoverlay.Center, 0, 0)
 	}
 	return bg
 }

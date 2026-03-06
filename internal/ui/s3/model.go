@@ -2,6 +2,7 @@ package s3
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -198,6 +199,9 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		return m, cmd
 
 	case bucketsErrMsg:
+		if errors.Is(msg.err, context.Canceled) {
+			return m, nil // panel is being replaced; silently drop
+		}
 		m.loading = false
 		m.err = msg.err
 		return m, nil
@@ -212,6 +216,9 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		return m, FetchPrefixCmd(m.ctx, m.bucketClient, m.selectedBucket, "")
 
 	case bucketClientErrMsg:
+		if errors.Is(msg.err, context.Canceled) {
+			return m, nil
+		}
 		m.loading = false
 		m.err = fmt.Errorf("failed to open bucket %q: %w", msg.bucket, msg.err)
 		return m, nil
@@ -229,6 +236,9 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		return m, cmd
 
 	case prefixesErrMsg:
+		if errors.Is(msg.err, context.Canceled) {
+			return m, nil
+		}
 		m.loading = false
 		m.refreshing = false
 		m.err = msg.err
