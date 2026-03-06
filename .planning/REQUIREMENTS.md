@@ -9,7 +9,7 @@ Requirements for initial release. All operations are read-only.
 
 ### Authentication
 
-- [ ] **AUTH-01**: User can switch between AWS profiles defined in ~/.aws/config without restarting the app
+- [x] **AUTH-01**: User can switch between AWS profiles defined in ~/.aws/config without restarting the app
 - [x] **AUTH-02**: App authenticates with named profiles (access key + secret key)
 - [x] **AUTH-03**: App authenticates with role assumption profiles (role_arn + source_profile)
 - [x] **AUTH-04**: App authenticates with AWS SSO profiles (sso_start_url / sso_account_id)
@@ -111,7 +111,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 5 | Pending |
+| AUTH-01 | Phase 5 | Complete |
 | AUTH-02 | Phase 1 | Complete |
 | AUTH-03 | Phase 1 | Complete |
 | AUTH-04 | Phase 1 | Complete |

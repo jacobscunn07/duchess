@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-06T03:11:28.834Z"
+last_updated: "2026-03-06T17:59:25.000Z"
 progress:
   total_phases: 5
   completed_phases: 5
-  total_plans: 11
-  completed_plans: 11
+  total_plans: 13
+  completed_plans: 12
 ---
 
 # Project State
@@ -23,9 +23,9 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 ## Current Position
 
 Phase: 5 of 5 (Profile and Region Switching) — IN PROGRESS
-Plan: 0 of 2 completed
-Status: Phase context captured (05-CONTEXT.md); ready for planning
-Last activity: 2026-03-06 — Phase 5 context gathered; keybindings, overlay style, panel reset strategy, credential error UX, and context cancellation pattern decided
+Plan: 1 of 2 completed
+Status: 05-01 complete — profile overlay with per-session context cancellation delivered (AUTH-01)
+Last activity: 2026-03-06 — 05-01 executed; ProfileOverlay, sessionCtx/cancelSession, p-key handler, btoverlay compositing, profileSelectedMsg lifecycle all shipped
 
 Progress: [██████████] 100%
 
@@ -47,13 +47,14 @@ Progress: [██████████] 100%
 | Phase 4.1 | 2/2 | 5 min | 2.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-03 (3 min), 04-01 (3 min), 04-02 (25 min), 04.1-01 (3 min), 04.1-02 (2 min)
-- Trend: fast execution; gap closure plans with surgical file changes
+- Last 5 plans: 04-01 (3 min), 04-02 (25 min), 04.1-01 (3 min), 04.1-02 (2 min), 05-01 (3 min)
+- Trend: fast execution; feature plans averaging 3 min
 
 *Updated after each plan completion*
 | Phase 04-ecs-browsing P02 | 3 | 2 tasks | 3 files |
 | Phase 04.1-refresh-interval P01 | 3 | 2 tasks | 5 files |
 | Phase 04.1-refresh-interval P02 | 2 | 2 tasks | 3 files |
+| Phase 05-profile-and-region-switching P01 | 3 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -102,6 +103,11 @@ Recent decisions affecting current work:
 - [Phase 04.1-refresh-interval]: tickCmd() in model.go left unchanged — it drives the 1-second status bar clock and is unrelated to configurable refresh
 - [Phase 04.1-refresh-interval]: intervalStyle reuses color 33 for visual consistency in status bar left group; lastRefreshed.IsZero() guard prevents stale timestamp at startup
 - [Phase 04.1-refresh-interval]: bucketsLoadedMsg now also clears m.refreshing (was only clearing m.loading) — s3RefreshTickMsg sets refreshing=true and FetchBucketsCmd is the refresh command
+- [Phase 05-profile-and-region-switching]: 05-01: profileDelegate.Render uses io.Writer (not *strings.Builder) — bubbles v1.0.0 API requires io.Writer
+- [Phase 05-profile-and-region-switching]: 05-01: p-key opens overlay in both stateReady and stateError — user must be able to escape error state by switching profiles
+- [Phase 05-profile-and-region-switching]: 05-01: m.cfg.Profile updated immediately on profileSelectedMsg before identity confirms — status bar shows new profile during loading
+- [Phase 05-profile-and-region-switching]: 05-01: cancelSession called before creating new sessionCtx — all in-flight goroutines from previous session cancelled atomically
+- [Phase 05-profile-and-region-switching]: 05-01: baseView() extracted from View() — prevents recursive View() call when compositing overlay background
 
 ### Pending Todos
 
@@ -114,5 +120,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: Phase 5 context captured — 05-CONTEXT.md written; all implementation decisions locked (keybindings p/r, overlay style, panel reset strategy, credential error UX, per-session context cancellation)
+Stopped at: Completed 05-01-PLAN.md — profile overlay and per-session context cancellation delivered; ready for 05-02 region switching
 Resume file: None
