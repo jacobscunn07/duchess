@@ -46,6 +46,7 @@ type Model struct {
 	loading         bool
 	err             error
 	refreshInterval time.Duration
+	lastRefreshed   time.Time
 	width           int
 	height          int
 }
@@ -182,6 +183,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	case clustersLoadedMsg:
 		m.loading = false
 		m.refreshing = false
+		m.lastRefreshed = time.Now()
 		m.err = nil
 		items := clustersToItems(msg.clusters)
 		savedIdx := m.list.Index()
@@ -198,6 +200,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	case servicesLoadedMsg:
 		m.loading = false
 		m.refreshing = false
+		m.lastRefreshed = time.Now()
 		m.err = nil
 		items := servicesToItems(msg.services)
 		savedIdx := m.list.Index()
@@ -214,6 +217,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	case tasksLoadedMsg:
 		m.loading = false
 		m.refreshing = false
+		m.lastRefreshed = time.Now()
 		m.err = nil
 		items := tasksToItems(msg.tasks)
 		savedIdx := m.list.Index()
@@ -348,10 +352,12 @@ func (m Model) renderBreadcrumb() string {
 		}
 	}
 
-	// Append refresh spinner on the right if refreshing or loading
+	// Append refresh spinner when active; last-refreshed timestamp when idle
 	suffix := ""
 	if m.refreshing || m.loading {
 		suffix = "  " + m.refreshSpinner.View()
+	} else if !m.lastRefreshed.IsZero() {
+		suffix = "  " + m.lastRefreshed.Format("15:04:05")
 	}
 
 	style := lipgloss.NewStyle().

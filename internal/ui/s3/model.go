@@ -46,6 +46,7 @@ type Model struct {
 	loading         bool // true during initial or navigation fetch
 	err             error
 	refreshInterval time.Duration
+	lastRefreshed   time.Time
 	width           int
 	height          int
 }
@@ -187,6 +188,8 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 
 	case bucketsLoadedMsg:
 		m.loading = false
+		m.refreshing = false
+		m.lastRefreshed = time.Now()
 		m.err = nil
 		items := bucketsToItems(msg.buckets)
 		savedIdx := m.list.Index()
@@ -216,6 +219,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	case prefixesLoadedMsg:
 		m.loading = false
 		m.refreshing = false
+		m.lastRefreshed = time.Now()
 		m.err = nil
 		items := prefixesToItems(msg.prefixes, msg.objects)
 		savedIdx := m.list.Index()
@@ -316,10 +320,12 @@ func (m Model) renderBreadcrumb() string {
 		crumb = strings.Join(parts, " > ")
 	}
 
-	// Append refresh spinner on the right if refreshing or loading
+	// Append refresh spinner when active; last-refreshed timestamp when idle
 	suffix := ""
 	if m.refreshing || m.loading {
 		suffix = "  " + m.refreshSpinner.View()
+	} else if !m.lastRefreshed.IsZero() {
+		suffix = "  " + m.lastRefreshed.Format("15:04:05")
 	}
 
 	style := lipgloss.NewStyle().
