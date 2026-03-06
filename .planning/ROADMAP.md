@@ -94,10 +94,11 @@ Plans:
   1. Running `duchess --profile X --refresh-interval 5s` causes the S3 and ECS panels to visibly refresh at approximately 5-second intervals (not the hardcoded 30s/10s defaults)
   2. Setting `refresh_interval: 10s` in `~/.duchess/config` produces the same effect without a CLI flag
   3. `cfg.RefreshInterval` is the sole source of truth for all tick durations; no hardcoded `30*time.Second`, `10*time.Second`, or `5*time.Second` literals remain in production code
-**Plans**: 1 plan
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04.1-01-PLAN.md — Thread cfg.RefreshInterval through NewRootModel into s3panel.NewModel and ecspanel.NewModel; parameterize all 4 tick cmd functions; fix all 12 call sites; no hardcoded durations remain
+- [x] 04.1-01-PLAN.md — Thread cfg.RefreshInterval through NewRootModel into s3panel.NewModel and ecspanel.NewModel; parameterize all 4 tick cmd functions; fix all 12 call sites; no hardcoded durations remain
+- [ ] 04.1-02-PLAN.md — Gap closure (UAT): add refresh interval indicator to status bar left group; add last-refreshed timestamp to S3 and ECS breadcrumbs so the active interval is observable to the user
 
 ### Phase 5: Profile and Region Switching
 **Goal**: In-session AWS profile and region switching via modal overlays, with immediate status bar update, credential error surfacing, and correct isolation of global vs. regional service panel state
@@ -125,5 +126,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 4.1 → 5
 | 2. UI Shell | 2/2 | Complete   | 2026-03-03 |
 | 3. S3 Browsing | 3/3 | Complete   | 2026-03-04 |
 | 4. ECS Browsing | 2/2 | Complete   | 2026-03-05 |
-| 4.1. Wire Configurable Refresh Interval | 1/1 | Complete   | 2026-03-05 |
+| 4.1. Wire Configurable Refresh Interval | 1/2 | In progress | - |
 | 5. Profile and Region Switching | 0/2 | Not started | - |
