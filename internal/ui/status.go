@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -23,6 +24,10 @@ var (
 			Inherit(statusBarStyle)
 
 	regionStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("33")).
+			Inherit(statusBarStyle)
+
+	intervalStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("33")).
 			Inherit(statusBarStyle)
 
@@ -62,12 +67,14 @@ func renderStatusBar(m rootModel) string {
 
 	sep := separatorStyle.Render(separatorValue)
 
-	// Build left group: version | profile | region
+	// Build left group: version | profile | region | interval
 	leftStr := versionStyle.Render(version) +
 		sep +
 		profileStyle.Render(m.cfg.Profile) +
 		sep +
-		regionStyle.Render(m.cfg.Region)
+		regionStyle.Render(m.cfg.Region) +
+		sep +
+		intervalStyle.Render(fmt.Sprintf("%ds", m.cfg.RefreshInterval))
 
 	// Build identity string based on current state.
 	var identityStr string
