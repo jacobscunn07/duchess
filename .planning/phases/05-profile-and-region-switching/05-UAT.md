@@ -1,9 +1,9 @@
 ---
-status: diagnosed
+status: resolved
 phase: 05-profile-and-region-switching
 source: 05-01-SUMMARY.md, 05-02-SUMMARY.md
 started: 2026-03-06T00:00:00Z
-updated: 2026-03-06T00:01:00Z
+updated: 2026-03-07T00:00:00Z
 ---
 
 ## Current Test
@@ -55,7 +55,7 @@ skipped: 0
 ## Gaps
 
 - truth: "Profile overlay shows all profiles on one page without pagination"
-  status: failed
+  status: resolved
   reason: "User reported: It works, but it only shows one profile on each page. I have two profiles in my aws config and there are two pages. There should be enough room for them to both fit on one page."
   severity: minor
   test: 1
@@ -68,7 +68,7 @@ skipped: 0
   debug_session: ".planning/debug/profile-overlay-pagination.md"
 
 - truth: "'p' key opens profile overlay in error state so user can escape by switching profiles"
-  status: failed
+  status: resolved
   reason: "User reported: I opened with a profile that does not have access to s3, but the profile selector did not open."
   severity: major
   test: 4
