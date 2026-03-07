@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-06T18:09:27.525Z"
+last_updated: "2026-03-07T01:41:41.971Z"
 progress:
   total_phases: 6
   completed_phases: 6
-  total_plans: 13
-  completed_plans: 13
+  total_plans: 14
+  completed_plans: 14
 ---
 
 # Project State
@@ -23,9 +23,9 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 ## Current Position
 
 Phase: 5 of 5 (Profile and Region Switching) — COMPLETE
-Plan: 2 of 2 completed
-Status: 05-02 complete — region overlay with context.Canceled guards delivered (AUTH-05)
-Last activity: 2026-03-06 — 05-02 executed; RegionOverlay, r-key handler, regionSelectedMsg lifecycle, context.Canceled guards in 7 error handlers all shipped
+Plan: 3 of 3 completed
+Status: 05-03 complete — profile overlay chrome disabled and p-key error visibility added (AUTH-01, AUTH-05)
+Last activity: 2026-03-07 — 05-03 executed; SetShowPagination/SetShowHelp disabled in NewProfileOverlay; p-key ListAWSProfiles failure now surfaces visible stateError message
 
 Progress: [██████████] 100%
 
@@ -56,6 +56,7 @@ Progress: [██████████] 100%
 | Phase 04.1-refresh-interval P02 | 2 | 2 tasks | 3 files |
 | Phase 05-profile-and-region-switching P01 | 3 | 2 tasks | 5 files |
 | Phase 05-profile-and-region-switching P02 | 2 | 2 tasks | 5 files |
+| Phase 05-profile-and-region-switching P03 | 1 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -112,6 +113,8 @@ Recent decisions affecting current work:
 - [Phase 05-profile-and-region-switching]: r key opens region overlay in both stateReady and stateError — consistent with p key behavior
 - [Phase 05-profile-and-region-switching]: S3 panel NOT reset on region switch — bucket list is global; ECS is region-specific
 - [Phase 05-profile-and-region-switching]: context.Canceled guard placed FIRST in all 7 error handlers before field mutations — prevents stale state on rapid switching
+- [Phase 05]: SetShowPagination(false)+SetShowHelp(false) in NewProfileOverlay eliminates 3 chrome rows that forced PerPage=1 with 2 profiles
+- [Phase 05]: p-key failure modes split into two explicit branches (err != nil vs len==0) each with fmt.Errorf messages rendered in stateError content area
 
 ### Pending Todos
 
@@ -123,6 +126,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-06
-Stopped at: Completed 05-02-PLAN.md — region overlay and context.Canceled guards delivered; Phase 5 complete
+Last session: 2026-03-07
+Stopped at: Completed 05-03-PLAN.md — profile overlay chrome disabled and p-key error visibility added; all UAT gaps closed
 Resume file: None

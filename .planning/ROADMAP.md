@@ -128,4 +128,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 4.1 → 5
 | 3. S3 Browsing | 3/3 | Complete   | 2026-03-04 |
 | 4. ECS Browsing | 2/2 | Complete   | 2026-03-05 |
 | 4.1. Wire Configurable Refresh Interval | 2/2 | Complete   | 2026-03-06 |
-| 5. Profile and Region Switching | 2/3 | In Progress | 2026-03-06 |
+| 5. Profile and Region Switching | 3/3 | Complete   | 2026-03-07 |
