@@ -112,6 +112,8 @@ func NewProfileOverlay(currentProfile string, termWidth, termHeight int, profile
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
 	l.DisableQuitKeybindings()
+	l.SetShowPagination(false)
+	l.SetShowHelp(false)
 	l.Select(selectedIdx)
 
 	borderStyle := lipgloss.NewStyle().
