@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 05-profile-and-region-switching
 source: 05-01-SUMMARY.md, 05-02-SUMMARY.md
 started: 2026-03-06T00:00:00Z
@@ -59,17 +59,24 @@ skipped: 0
   reason: "User reported: It works, but it only shows one profile on each page. I have two profiles in my aws config and there are two pages. There should be enough room for them to both fit on one page."
   severity: minor
   test: 1
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "NewProfileOverlay does not call l.SetShowPagination(false) or l.SetShowHelp(false); the 3 chrome rows (help=2, pagination=1) consume all available height leaving PerPage=1 for 2 profiles"
+  artifacts:
+    - path: "internal/ui/overlay/profile.go"
+      issue: "NewProfileOverlay() missing l.SetShowPagination(false) and l.SetShowHelp(false) calls after list creation"
+  missing:
+    - "Add l.SetShowPagination(false) and l.SetShowHelp(false) in NewProfileOverlay()"
+  debug_session: ".planning/debug/profile-overlay-pagination.md"
 
 - truth: "'p' key opens profile overlay in error state so user can escape by switching profiles"
   status: failed
   reason: "User reported: I opened with a profile that does not have access to s3, but the profile selector did not open."
   severity: major
   test: 4
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "S3 access-denied errors are trapped in s3panel.Model.err and do not set rootModel.state to stateError — rootModel stays in stateReady. The 'p' guard covers stateReady so key routing is not the issue. The silent guard (lines 176-179) returns nil with no feedback if ListAWSProfiles() fails or returns no profiles, swallowing the keypress invisibly."
+  artifacts:
+    - path: "internal/ui/model.go"
+      issue: "Silent return m, nil at lines 176-179 when ListAWSProfiles() errors or returns empty — no user feedback explaining why overlay did not open"
+  missing:
+    - "Replace silent return with visible error feedback (status bar message or m.err) when ListAWSProfiles fails"
+    - "Investigate why ListAWSProfiles() may fail or return empty in the error-profile scenario"
+  debug_session: ".planning/debug/p-key-error-state.md"
