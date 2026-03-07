@@ -2,6 +2,7 @@ package ui
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
@@ -173,8 +174,14 @@ func (m rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "p":
 			if m.state == stateReady || m.state == stateError {
 				profiles, err := overlay.ListAWSProfiles()
-				if err != nil || len(profiles) == 0 {
-					// Gracefully skip — no profiles to show.
+				if err != nil {
+					m.err = fmt.Errorf("could not read ~/.aws/config: %w", err)
+					m.state = stateError
+					return m, nil
+				}
+				if len(profiles) == 0 {
+					m.err = fmt.Errorf("no profiles found in ~/.aws/config — add a [profile ...] section")
+					m.state = stateError
 					return m, nil
 				}
 				m.isProfileOverlayOpen = true
