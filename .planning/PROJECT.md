@@ -35,9 +35,21 @@ Navigate your AWS resources across accounts and regions in one terminal session 
 - ✓ Configuration can be set via ~/.duchess/config file — v1.0
 - ✓ CLI flags override config file values — v1.0
 
+## Current Milestone: v1.1 Visual Polish
+
+**Goal:** Transform the UI into a polished, themed AWS TUI — new header with logo, two-panel layout, AWS Dark color theme, and a service switcher modal — without touching business logic.
+
+**Target features:**
+- Persistent header with ASCII art "duchess" logo + app metadata
+- Two-panel main area (left: service-contextual nav; right: content with service name header)
+- Revised footer (principal ARN left, clock right, service indicator removed)
+- Service switcher modal (`s` key, follows existing region/profile modal pattern)
+- AWS Dark color theme (AWS Orange #FF9900 accent, dark background, Squid Ink surfaces)
+- Centralized theme object (DarkTheme) — no inline hardcoded colors
+- Rounded corners on all borders
+
 ### Active
 
-(None — planning next milestone. See `/gsd:new-milestone` to define v1.1 requirements.)
 
 ### Out of Scope
 
@@ -83,4 +95,4 @@ Navigate your AWS resources across accounts and regions in one terminal session 
 | HeadBucket (not GetBucketLocation) for region detection | GetBucketLocation returns null for us-east-1 (documented AWS API bug) | ✓ Good — avoids null-region handling edge case |
 
 ---
-*Last updated: 2026-03-10 after v1.0 milestone*
+*Last updated: 2026-03-10 after v1.1 milestone start*
