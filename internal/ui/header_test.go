@@ -69,3 +69,20 @@ func TestRenderHeaderContainsMetaLabels(t *testing.T) {
 	}
 }
 
+func TestRenderHeaderVersionPresent(t *testing.T) {
+	m := rootModel{
+		cfg: &config.Config{
+			Profile:         "default",
+			Region:          "us-east-1",
+			RefreshInterval: 30,
+		},
+		width:  120,
+		height: 40,
+	}
+	result := renderHeader(m, 120)
+	stripped := stripANSI(result)
+	if !strings.Contains(stripped, "v"+version) {
+		t.Errorf("renderHeader output should contain version string %q", "v"+version)
+	}
+}
+

@@ -58,16 +58,17 @@ func renderHeader(m rootModel, width int) string {
 	// Order: version (no label), profile, region, refresh interval.
 	// Labels in Muted, values in Accent.
 	metaLines := strings.Join([]string{
-		metaValueStyle.Render("v" + version),
 		metaLabelStyle.Render("profile: ") + metaValueStyle.Render(m.cfg.Profile),
-		metaLabelStyle.Render("region: ") + metaValueStyle.Render(m.cfg.Region),
+		metaLabelStyle.Render("region: ")  + metaValueStyle.Render(m.cfg.Region),
 		metaLabelStyle.Render("refresh: ") + metaValueStyle.Render(fmt.Sprintf("%ds", m.cfg.RefreshInterval)),
+		metaValueStyle.Render("v" + version),
 	}, "\n")
 
 	// Bottom-align the metadata column within headerHeight rows.
 	// This visually anchors the metadata to the bottom rows of the logo.
-	metaCol := lipgloss.PlaceVertical(headerHeight, lipgloss.Bottom, metaLines)
-	metaW := lipgloss.Width(metaCol)
+	metaColRaw := lipgloss.PlaceVertical(headerHeight, lipgloss.Bottom, metaLines)
+	metaCol    := headerStyle.Render(metaColRaw)
+	metaW      := lipgloss.Width(metaCol)
 
 	// Build a gap column to push metadata to the right edge.
 	gapW := width - logoW - metaW
@@ -76,7 +77,7 @@ func renderHeader(m rootModel, width int) string {
 	}
 	// A gap column of the right height ensures JoinHorizontal aligns correctly.
 	gapLines := strings.Repeat("\n", headerHeight-1)
-	gapCol := lipgloss.NewStyle().Width(gapW).Render(gapLines)
+	gapCol := headerStyle.Width(gapW).Render(gapLines)
 
 	// Use JoinHorizontal so multi-line columns are stitched side-by-side correctly.
 	// This avoids raw string concatenation which causes incorrect height measurement.
