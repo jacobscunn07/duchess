@@ -1,166 +1,280 @@
-# Feature Landscape
+# Feature Research — v1.1 Visual Polish Milestone
 
-**Domain:** AWS TUI — k9s-inspired terminal navigator for S3 and ECS
-**Researched:** 2026-03-02
-**Confidence note:** Web search and WebFetch tools were unavailable during this research session. Findings are drawn from deep domain knowledge of k9s (widely studied open-source project), AWS CLI ecosystem tooling (awsume, Leapp, granted, aws-console, s3-browser, ecs tooling), and the project's own go.mod which confirms the Bubble Tea / Bubbles / Lipgloss stack. Confidence ratings reflect this limitation.
-
----
-
-## Table Stakes
-
-Features users expect. Missing = product feels incomplete or untrustworthy.
-
-| Feature | Why Expected | Complexity | Confidence | Notes |
-|---------|--------------|------------|------------|-------|
-| Vim-style keybindings (j/k/g/G/q/Esc) | k9s established this as the TUI standard; engineers expect it | Low | HIGH | j/k scroll rows, g/G jump to top/bottom, q quit, Esc navigate back one level |
-| Persistent status bar | Every serious TUI shows current context so users know where they are | Low | HIGH | Must show: profile, region, IAM identity, clock. Users are burned by acting in wrong account |
-| AWS profile switching | Engineers have 5-20 profiles; switching without restarting is baseline expectation | Medium | HIGH | Must read ~/.aws/config; support named, role-assumption, and SSO profiles |
-| AWS region switching | ECS is regional; users must be able to switch region in-session | Low | HIGH | S3 is global — region switch only affects regional services (ECS). This distinction must be communicated in the UI |
-| IAM identity display (who am I?) | Critical safety feature — users need to know which account/role they are in before they trust any data | Medium | HIGH | Call STS GetCallerIdentity; display Account ID + ARN (or friendly role name). Stale display is worse than no display — must refresh on profile switch |
-| Help overlay (? key) | k9s standard; users discover keybindings through ? not docs | Low | HIGH | Context-sensitive: show keybindings relevant to current view. Static global help is a fallback but inferior |
-| Breadcrumb / location indicator | Users navigating S3 prefix hierarchies get lost without it | Low | HIGH | "S3 > my-bucket > logs/2024/" style header. ECS equivalent: "ECS > us-east-1 > prod-cluster > api-service" |
-| S3 bucket list | Core feature; every S3 tool starts here | Low | HIGH | Show: bucket name, region, creation date. Sorted alphabetically by default |
-| S3 prefix (folder) navigation | S3 is flat but users expect folder metaphor; all S3 tools implement this | Medium | HIGH | List common prefixes as "directories"; Enter to descend, Esc to ascend. Show item count or size if feasible |
-| S3 object metadata view | Users browsing S3 want to know size, last modified, storage class without leaving TUI | Low | HIGH | Show in detail panel or secondary column: key, size (human-readable), last modified, storage class, ETag |
-| ECS cluster list | Core feature for ECS browsing | Low | HIGH | Show: cluster name, status, registered container instances, running/pending tasks |
-| ECS service drill-down | Engineers navigating ECS always drill: cluster → service → task | Medium | HIGH | Show per service: desired count, running count, pending count, launch type (Fargate/EC2), task definition |
-| ECS task detail view | Task-level detail is the most common debugging destination in ECS | Medium | HIGH | Show: task ID, task definition, status, started at, containers (name, image, status, exit code if stopped) |
-| Auto-refresh | Live infrastructure data must not go stale; users expect near-real-time view | Medium | HIGH | Default 2s interval (configurable). Must not disrupt cursor position or scroll on refresh |
-| Error display (not crash) | API errors — expired credentials, no permissions — must be shown gracefully | Medium | HIGH | Show error inline in the view that failed; do not crash the whole app. Expired SSO token is the most common case |
-| Loading states | AWS API calls take 200ms-2s; blank screen during load erodes trust | Low | HIGH | Spinner or "Loading..." text while first fetch is in-flight. Subsequent refreshes can be silent |
+**Domain:** TUI visual polish — k9s-inspired AWS TUI layout redesign
+**Researched:** 2026-03-10
+**Confidence:** MEDIUM-HIGH (web search available; WebFetch blocked; training data supplemented by code review of existing duchess codebase)
 
 ---
 
-## Differentiators
-
-Features that set duchess apart. Not universally expected, but materially increase value.
-
-| Feature | Value Proposition | Complexity | Confidence | Notes |
-|---------|-------------------|------------|------------|-------|
-| Multi-profile instant switching | Competitors require restart to switch profiles; duchess makes it instant and obvious | Medium | HIGH | The profile switcher (modal or sidebar) is a first-class UX element — not buried in a menu. This is the core value prop of the tool |
-| SSO profile support with graceful re-auth prompting | awsume and granted do SSO well, but TUI tools often fall back to "just use CLI first"; duchess should handle expired SSO tokens and guide the user to re-authenticate | High | MEDIUM | Display a clear message with the `aws sso login --profile <name>` command to run. Do not attempt to open browser from within TUI (too fragile) |
-| Role assumption chain display | Engineers using assumed roles often lose track of the trust chain; showing source_profile → role_arn in the identity panel adds trust | Medium | MEDIUM | Useful for compliance-conscious teams; surfaced in the status bar or identity detail overlay |
-| S3 search / filter within bucket | Buckets with millions of objects are unusable without filter; prefix-based filter in the TUI | Medium | HIGH | / key to enter filter mode; filter applies to current prefix level (server-side prefix filter via ListObjectsV2 Prefix param) |
-| ECS container log hint | "Press L to open logs in CloudWatch console" — not fetching logs (out of scope) but linking to the right place | Low | MEDIUM | Open URL in browser using open/xdg-open; construct the CloudWatch Logs Insights URL from log group and task ID |
-| S3 object count and total size per prefix | S3 console shows this; the CLI does not easily; a TUI showing "this prefix: 4,231 objects, 12.4 GB" is genuinely useful | High | MEDIUM | Requires recursive ListObjectsV2 — expensive for large buckets. Should be on-demand (press S to compute size) not automatic |
-| Copy ARN / resource identifier to clipboard | Engineers constantly copy ARNs for use in IAM policies or other CLI commands | Low | HIGH | c or y key to yank the ARN of the selected resource to clipboard. go.mod already includes github.com/atotto/clipboard — this is essentially free to implement |
+> **Scope note:** This file covers ONLY the four new feature areas for the v1.1 milestone.
+> All v1.0 product features (S3/ECS browsing, profile/region switching, keybindings) are
+> implemented and out of scope here. Research categories map to the four milestone targets:
+> Header, Layout, Service Switcher, Theme.
 
 ---
 
-## Anti-Features
+## Feature Landscape
 
-Features to explicitly NOT build in v1. Each has a deliberate reason.
+### Table Stakes (Users Expect These)
 
-| Anti-Feature | Why Avoid | What to Do Instead |
-|--------------|-----------|-------------------|
-| S3 upload / download / delete | Write operations require IAM write permissions; open-source users should trust the tool is safe before granting that access | Display object metadata only; show "write operations in v2" if user presses Delete |
-| ECS exec (container shell) | Requires ECS Exec IAM permissions, SSM agent in container, and interactive PTY — significant complexity and security surface | Show task detail; consider linking to AWS console ECS Exec session in v2 |
-| ECS task stop / restart | Mutation; breaks the read-only contract that builds user trust | Show task status; message "mutations in v2" |
-| MFA token entry | Fragile to implement; modern SSO-based setups make it largely unnecessary; adds significant auth complexity | Support SSO profiles; document MFA workaround via aws-vault or similar |
-| CloudWatch Logs viewer | Fetching and streaming logs is a separate product (dedicated tools: cwtail, saw); pulling logs into duchess bloats scope and requires log-specific pagination/streaming logic | Provide a "open in console" URL hint for task logs |
-| EC2 browser | EC2 instance management is a different domain with much higher blast radius for mistakes; keeps v1 focused | Defer to v2 as a separate service module |
-| Lambda browser | Same rationale as EC2 — separate domain, out of v1 scope | Defer to v2 |
-| Multi-region simultaneous view | Aggregating resources across all regions requires N parallel API calls and complex table merging; S3 is already global so this mainly applies to ECS | Let users switch regions and view one region at a time; add region aggregate view in v2 if demanded |
-| Config UI inside TUI | Editing duchess config from within the TUI is over-engineered for v1; config file is simple YAML/TOML | Document config file format; edit with any text editor |
-| Mouse support | Adds complexity; the target user (vim-native engineers) does not expect or want mouse navigation in a TUI | Keyboard-only; document this as intentional |
+Features that k9s-class TUI users assume exist. Missing these makes the redesigned UI feel
+unfinished or amateurish compared to the tools that inspired duchess.
+
+| Feature | Why Expected | Complexity | Category | Notes |
+|---------|--------------|------------|----------|-------|
+| Persistent header with app identity | k9s, lazygit, superfile all show a fixed top bar — users orient by the "you are in X tool" signal | LOW | Header | Rendered once per frame at a fixed height; height must be subtracted from content area |
+| ASCII logo in header | k9s's dog logo and text logo are iconic; polished TUIs brand themselves visually | LOW | Header | Multi-line raw string literal in Go; lipgloss.Height() determines row cost; 4-6 rows is conventional |
+| Header metadata (profile, region, version) | Status-bar metadata belongs in the header in a two-panel layout — users expect at-a-glance context without hunting | LOW | Header | The v1.0 status bar already has this data; the redesign moves it upward and reformats it alongside the logo |
+| Two-panel layout (left nav + right content) | k9s, lazygit, and most professional TUIs use a left-sidebar/right-content split for navigation | MEDIUM | Layout | lipgloss.JoinHorizontal(lipgloss.Top, nav, content); left panel is fixed-width (20-25 chars), right takes remainder |
+| Left nav showing current service + available services | Users need a visible, persistent list of what they can navigate to — not a hidden keybinding | LOW | Layout | Static list (S3, ECS) with the active service highlighted; no scrolling needed until there are 8+ services |
+| Content panel with service-name subheader | Right panel should title itself with the current service so orientation is instant | LOW | Layout | Single-line header at top of right panel (e.g., "S3 Buckets") rendered as styled text, not ASCII art |
+| Rounded borders on panels | k9s uses borders to visually separate regions; rounded corners are modern TUI convention | LOW | Theme | lipgloss.RoundedBorder() — already used in profile/region overlays in v1.0; extend to main panels |
+| Modal overlays follow existing pattern | Service switcher should behave exactly like profile and region overlays — same key conventions, same visual style | LOW | Service Switcher | btoverlay.Composite is already wired in model.go; service switcher overlay is the third instance of this pattern |
+| Footer revised to principal ARN + clock | v1.0 footer has service indicator which becomes redundant once the left nav shows active service | LOW | Layout | Remove panel indicator [S3]/[ECS] from footer; keep ARN left + clock right |
+
+### Differentiators (Competitive Advantage)
+
+Features that distinguish duchess's visual identity beyond what is merely functional.
+
+| Feature | Value Proposition | Complexity | Category | Notes |
+|---------|-------------------|------------|----------|-------|
+| AWS Dark color theme (AWS Orange accent) | Immediately communicates "this is an AWS tool" without reading a word — color as brand signal | MEDIUM | Theme | #FF9900 (AWS Orange) as accent; #232F3E (Squid Ink) as surface backgrounds; lipgloss supports truecolor hex directly |
+| Centralized DarkTheme object (no inline colors) | Inline hardcoded colors in v1.0 (e.g., lipgloss.Color("33")) are scattered across 5+ files; a theme struct eliminates future color drift and enables future theme switching | MEDIUM | Theme | Define a struct with named fields (Accent, Surface, Border, Text, Muted, etc.); pass to all rendering functions; this is architecturally the biggest change of the milestone |
+| Left nav active-service highlight with accent color | The active service should be visually prominent (bold + accent foreground or accent background); passive entries should be clearly subordinate | LOW | Layout | Single style application using DarkTheme.Accent; uses the same selected-item pattern as existing overlay delegates |
+| Logo + metadata layout cohesion | Logo on left, metadata tokens on right, vertically centered — mirrors the header layout of k9s's information bar | LOW | Header | lipgloss.JoinHorizontal with logo block and right-aligned metadata block; right block uses lipgloss.PlaceHorizontal or padding to push to the right |
+| Service switcher key is `s` | The `s` key is semantically natural for "service"; matches k9s's colon-command pattern of using mnemonic keys for switchers | LOW | Service Switcher | Adds `case "s":` to rootModel.Update key handler; parallel to existing `p` (profile) and `r` (region) handlers |
+
+### Anti-Features (Commonly Requested, Often Problematic)
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Animated/dynamic ASCII logo | Looks impressive in demos | Wastes CPU on every render tick, adds complexity, distracts from data | Static ASCII art rendered once; use a spinner only during loading states |
+| Per-panel border focus ring (active panel highlights its border) | Conveys which panel has keyboard focus visually | In the two-panel redesign, the left nav is display-only (no keyboard focus) and the right content always has focus — a focus ring implies interactivity that does not exist | Use active-service highlight in left nav instead; border focus rings are only appropriate when both panels accept keyboard input |
+| Light theme variant | Appeals to users who run light terminals | Adds conditional rendering and a second full color set; doubles the theming surface area for v1.1 | Ship DarkTheme; design the theme struct to support a second theme later (LightTheme struct field matches) but do not implement it in v1.1 |
+| Configurable theme via config file | Power-user request | Requires theme file parsing, validation, runtime color recalculation; significant complexity for a visual-polish milestone | Hardcode DarkTheme for v1.1; design the struct to be instantiatable (not a package-level singleton) to enable config-driven themes in v2 |
+| Mouse hover effects on nav items | Visual richness | duchess is intentionally keyboard-only (PROJECT.md: "Mouse navigation — target users are vim-native; keyboard-only is intentional"); mouse interaction is explicitly out of scope | Keyboard highlight with accent color is sufficient |
+| Full-width ASCII banner that consumes 8+ rows | Dramatic visual impact | Consumes 30%+ of a typical 24-row terminal; leaves inadequate vertical space for list content; forces truncation of usable content | Keep header to 5-6 rows maximum; a compact logo + inline metadata is the k9s convention |
 
 ---
 
 ## Feature Dependencies
 
 ```
-Profile switching → IAM identity display
-  (switching profile must re-call STS GetCallerIdentity and update status bar)
+DarkTheme struct
+    └──required by──> Header rendering
+    └──required by──> Left nav panel styling
+    └──required by──> Right content panel styling
+    └──required by──> Service switcher overlay styling
+    └──required by──> Footer revised styling
+    (DarkTheme is the foundation; all visual components depend on it)
 
-IAM identity display → STS integration
-  (requires aws-sdk-go-v2/service/sts, already in go.mod)
+Two-panel layout
+    └──requires──> Height budget calculation
+                       └──requires──> Header height (lipgloss.Height(header))
+                       └──requires──> Footer height (lipgloss.Height(footer))
+    └──requires──> Left nav width constant (fixed ~20 chars)
+    └──right content width = total_width - left_nav_width
 
-S3 prefix navigation → Breadcrumb display
-  (cannot navigate prefixes without showing where you are)
+Service switcher modal
+    └──follows pattern of──> Profile overlay (overlay/profile.go)
+    └──follows pattern of──> Region overlay (overlay/region.go)
+    └──uses──> btoverlay.Composite (already in model.go View())
+    └──dispatches──> serviceSelectedMsg (new typed message, parallel to profileSelectedMsg / regionSelectedMsg)
 
-S3 search/filter → S3 prefix navigation
-  (filter operates within a prefix context)
+Revised footer
+    └──removes──> panelIndicator field from renderStatusBar()
+    └──depends on──> DarkTheme (for consistent color tokens)
+    (footer is a simplification, not a new component)
 
-S3 object size-per-prefix → S3 prefix navigation
-  (on-demand compute, but requires being inside a prefix view)
-
-ECS task detail → ECS service drill-down → ECS cluster list
-  (strict hierarchy: must enter cluster before service before task)
-
-ECS container log hint → ECS task detail
-  (log group only available at task/container level)
-
-Copy ARN to clipboard → Any resource list view
-  (applicable to S3 buckets, ECS clusters, services, tasks)
-
-Auto-refresh → All list views
-  (refresh must work at every level of the hierarchy without losing cursor position)
-
-Help overlay → All views
-  (context-sensitive help requires each view to register its keybindings)
-
-Error display → All AWS API calls
-  (every API call can fail; error handling is a cross-cutting concern)
-
-SSO re-auth prompting → Profile switching
-  (SSO token expiry is detected during profile switch or first API call after switch)
+Header
+    └──depends on──> DarkTheme (accent color for logo or metadata tokens)
+    └──height consumed by──> reduces contentH passed to panels
+    (existing: contentH = m.height - lipgloss.Height(statusBar)
+     new:      contentH = m.height - lipgloss.Height(header) - lipgloss.Height(footer))
 ```
 
----
+### Dependency Notes
 
-## MVP Recommendation
+- **DarkTheme must be built first:** Every other component in this milestone consumes it. Building
+  panels before the theme struct means double-touching every file.
 
-**Build in v1 (launch with these or do not launch):**
+- **Height budget calculation changes are the highest-risk dependency:** Currently `model.go`
+  computes `contentH` by subtracting one status bar from terminal height. The new layout subtracts
+  both a header and a footer, and the content area is further split left/right. Every place that
+  passes `width` and `height` to panels must be audited — there are currently at least 3 sites in
+  `model.go` (identityLoadedMsg handler, regionSelectedMsg handler, and baseView()).
 
-1. Persistent status bar — profile, region, IAM identity, clock
-2. Profile switching (named, role-assumption, SSO)
-3. Region switching
-4. Vim-style keybindings throughout
-5. Help overlay (? key, context-sensitive per view)
-6. S3 bucket list → prefix navigation → object metadata
-7. ECS cluster list → service detail → task detail
-8. Auto-refresh (default 2s, configurable)
-9. Graceful error display (expired credentials, no permissions)
-10. Loading states during API calls
-11. Breadcrumb header in all views
+- **Service switcher is structurally isolated:** It follows the profile/region pattern exactly.
+  The implementation risk is LOW because the pattern is already proven and tested in the codebase.
+  The only novel part is defining `serviceSelectedMsg` and the panel-switching logic (which already
+  exists via the `tab` key handler — the switcher just provides a UI to trigger it).
 
-**High-value, low-cost additions for v1 launch:**
-
-- Copy ARN/key to clipboard (c or y key) — clipboard lib already in go.mod, trivial to add
-- S3 prefix filter (/ key) — users with large buckets will hit this immediately; without it, S3 browsing is painful for real workloads
-
-**Defer with clear v2 rationale:**
-
-- S3 object size-per-prefix: on-demand compute is expensive for large buckets; design the architecture to support it but do not build it in v1
-- ECS container log hint: useful but not blocking; add after core ECS navigation is solid
-- SSO re-auth prompting: show error message with CLI command to run; full re-auth flow is v2
+- **Two-panel layout does not require new panel models:** The existing `s3panel.Model` and
+  `ecspanel.Model` render into whatever width/height they are given. The layout change is entirely
+  in `rootModel.baseView()` — panels are not aware of the two-panel structure.
 
 ---
 
-## Existing Tool Landscape
+## MVP Definition
 
-Confidence: MEDIUM — from training data, not verified live due to tool unavailability.
+### This Milestone (v1.1 — all four areas are in scope together)
 
-| Tool | Focus | What It Does Well | Gap duchess fills |
-|------|-------|-------------------|------------------|
-| k9s | Kubernetes | Navigation model, keybindings, live refresh, help system | AWS equivalent does not exist at this quality level |
-| awsume | Auth | Profile switching, role assumption, SSO token refresh | Terminal-only, no resource browsing; duchess uses same profile system |
-| granted | Auth | Multi-account SSO, profile management, browser console handoff | No TUI resource browsing; complementary to duchess |
-| Leapp | Auth | GUI-based credential management, MFA, SSO | Heavy GUI app; terminal engineers prefer lighter tooling |
-| aws-console (various) | Console | Opens AWS console in browser for a profile | No in-terminal resource viewing |
-| s3cmd / aws s3 ls | S3 CLI | Scriptable S3 access | No interactive navigation; no ECS; no profile-aware TUI |
-| s3-tui (various small tools) | S3 | Minimal S3 TUI implementations | Limited maintenance, narrow scope, no ECS, no profile switching |
-| ecs-cli | ECS | Task definitions, cluster management | Deprecated by AWS; not a TUI |
+This is a visual polish milestone, not a phased feature build. All four areas should ship together
+because they form a coherent redesign — shipping the theme without the layout, or the layout without
+the theme, produces an inconsistent result.
 
-**The gap:** No well-maintained, k9s-quality TUI exists for AWS that covers multi-profile navigation, S3, and ECS in one tool. duchess targets exactly this gap.
+- [ ] **DarkTheme struct** — centralized color token object; no inline colors anywhere after
+  (this is the prerequisite for everything else)
+- [ ] **Header with ASCII logo** — 4-6 rows, logo left, metadata right, themed with DarkTheme
+- [ ] **Two-panel layout** — left nav (fixed ~20 cols) + right content (remainder); left nav
+  shows service list with active item highlighted; right content renders existing panel views
+- [ ] **Revised footer** — principal ARN left, clock right; panel indicator removed
+- [ ] **Service switcher modal** — `s` key, lists available services, confirms with Enter,
+  follows profile/region overlay pattern exactly
+
+### Add After Validation (v1.2+)
+
+- [ ] Additional AWS services (EC2, Lambda, CloudWatch) in left nav — only valuable once the
+  service switcher and two-panel structure are proven with 2 services
+- [ ] Light theme variant — only if user feedback indicates light-terminal users are a meaningful
+  audience segment
+
+### Future Consideration (v2+)
+
+- [ ] Config-driven theme selection — requires theme file parsing infrastructure
+- [ ] Animated logo or theme variants for different AWS environments (prod vs dev warning) — the
+  k9s custom logo issue (#2090) shows this is requested but complex
+
+---
+
+## Feature Prioritization Matrix
+
+| Feature | User Value | Implementation Cost | Priority |
+|---------|------------|---------------------|----------|
+| DarkTheme struct (centralized colors) | HIGH | LOW | P1 |
+| Header with ASCII logo | HIGH | LOW | P1 |
+| Two-panel layout | HIGH | MEDIUM | P1 |
+| Revised footer | MEDIUM | LOW | P1 |
+| Service switcher modal | HIGH | LOW | P1 |
+| Rounded borders (all panels) | MEDIUM | LOW | P1 |
+| Left nav active-service highlight | HIGH | LOW | P1 |
+| Right content service-name subheader | MEDIUM | LOW | P1 |
+
+**Priority key:** All items are P1 — this is a focused milestone with a defined feature set.
+No P2/P3 items exist because anything not in this list is explicitly deferred.
+
+---
+
+## Polished TUI Patterns Observed (Research Findings)
+
+These findings from k9s, lazygit, and the Charmbracelet ecosystem inform the decisions above.
+
+### Header patterns
+
+**k9s:** Persistent header showing the ASCII dog/text logo plus cluster context info (cluster name,
+API server URL). Header is approximately 5-6 rows. The `logoless` config option exists precisely
+because some users need the rows back — indicating the logo is standard but its row cost is known.
+The logo is a branding anchor that makes the tool instantly recognizable in screenshots.
+Confidence: HIGH (widely documented, feature request #2090 directly references the logo system).
+
+**Implication for duchess:** A 4-6 row header with the "duchess" ASCII logo plus profile/region/
+version metadata is the correct pattern. Taller headers are extractable by config later.
+
+### Two-panel layout
+
+**lipgloss:** `JoinHorizontal(lipgloss.Top, leftBlock, rightBlock)` is the idiomatic approach.
+The left block is rendered to a fixed column width; the right block gets the remainder. Both are
+styled independently. `lipgloss.Width()` and `lipgloss.Height()` can measure rendered blocks to
+verify dimensions. The layout function is well-tested and performant.
+Confidence: HIGH (official lipgloss API, verified in pkg.go.dev documentation).
+
+**Fixed-width left nav:** The service list (S3, ECS — eventually more) contains short names.
+A fixed nav width of 20 columns is generous (the longest current name "ECS" is 3 chars; with
+padding and borders, 18-22 columns is appropriate). Proportional widths create a jumpy layout
+when terminal is resized; fixed-width nav is the right call for text-label navigation.
+Confidence: MEDIUM (inference from k9s and lazygit patterns; lazygit uses fixed-width side panels).
+
+### Service switcher modal
+
+The existing codebase has two modal overlays (profile, region) using `btoverlay.Composite` and the
+`rmhubbert/bubbletea-overlay` library. Both follow the same pattern:
+
+1. A bool flag on rootModel controls visibility (`isProfileOverlayOpen`, `isRegionOverlayOpen`)
+2. Key handler in rootModel.Update() opens the overlay and intercepts keys while open
+3. On Enter, a typed message is dispatched (`profileSelectedMsg`, `regionSelectedMsg`)
+4. rootModel.View() composites overlay over base view using btoverlay.Composite
+
+The service switcher is structurally identical. It does not need the external overlay library for
+something as simple as a list of 2-5 services — but using the same library maintains visual
+consistency (same centering, same blur-background behavior).
+Confidence: HIGH (direct code reading of overlay/profile.go and overlay/region.go).
+
+### Color theme
+
+**k9s theming:** k9s uses a YAML skin file with named sections: `frame` (border, title, crumb,
+status), `views` (table header, selected row, error row), `status` (new, modified, add, error,
+highlight, kill, completed colors). The theme is a flat config struct, not a polymorphic interface.
+This is the right model for a v1.1 theme — a simple named-field struct, not an interface.
+Confidence: HIGH (k9s skins documentation on k9scli.io, confirmed by multiple sources).
+
+**Lipgloss color support:** Lipgloss v1 supports hex colors directly (`lipgloss.Color("#FF9900")`).
+The library auto-detects terminal color capabilities (TrueColor, ANSI256, ANSI) via termenv and
+degrades automatically. For maximum correctness, `lipgloss.CompleteColor` can specify all three
+profiles explicitly. Since duchess targets engineers with modern terminals (iTerm2, Alacritty,
+WezTerm, macOS Terminal 2019+), relying on auto-detection with hex colors is acceptable.
+The `NO_COLOR` guard in v1.0 `NewRootModel()` continues to apply.
+Confidence: HIGH (lipgloss pkg.go.dev documentation, confirmed by charmbracelet/mods DeepWiki).
+
+**AWS Dark palette mapping:**
+
+| Token | Hex | Usage | ANSI256 fallback |
+|-------|-----|-------|-----------------|
+| Accent | #FF9900 | Logo, active nav item, focus borders | 214 (Orange1, close match) |
+| Surface | #232F3E | Panel backgrounds (Squid Ink) | 235 (Grey27, close match) |
+| SurfaceAlt | #1A2332 | Header/footer backgrounds (darker) | 234 (Grey11) |
+| Text | #FFFFFF | Primary text | 15 (White) |
+| TextMuted | #8C9BAB | Secondary text, separators | 103 (LightSlateGrey) |
+| Border | #3A4B5C | Panel borders (lighter than surface) | 237 (Grey23) |
+| Selected | #FF9900 | Selected item foreground or background | 214 |
+| Error | #FF4444 | Error states | 196 (Red1) |
+
+Confidence: MEDIUM (hex values from AWS brand documentation and community dark theme implementations;
+ANSI256 fallbacks are nearest-neighbor estimates from xterm 256-color chart — verify with CompleteColor).
+
+---
+
+## Existing Code Integration Points
+
+These are the specific files that will need changes, identified from code reading:
+
+| File | Change Type | Change Summary |
+|------|-------------|----------------|
+| `internal/ui/status.go` | REFACTOR | Replace inline `lipgloss.Color("236")` etc. with DarkTheme tokens; remove panel indicator |
+| `internal/ui/model.go` | EXTEND + REFACTOR | Add `isServiceOverlayOpen`, `serviceOverlay` fields; add `s` key handler; add `serviceSelectedMsg`; rewrite `baseView()` for two-panel layout; change height budget to subtract header + footer |
+| `internal/ui/overlay/profile.go` | MINOR | Update border color to use DarkTheme.Border instead of hardcoded `"62"` |
+| `internal/ui/overlay/region.go` | MINOR | Same as profile.go |
+| `internal/ui/overlay/service.go` | NEW | ServiceOverlay struct following profile.go pattern exactly |
+| `internal/ui/theme.go` | NEW | DarkTheme struct definition and singleton; all color tokens |
+| `internal/ui/header.go` | NEW | renderHeader(m rootModel) string — ASCII logo + metadata |
+
+The `s3/model.go` and `ecs/model.go` panel files do not need changes — they render into
+whatever width/height they receive. The layout change is entirely in rootModel.
 
 ---
 
 ## Sources
 
-- Project context: `.planning/PROJECT.md`
-- Stack evidence: `go.mod` (confirms Bubble Tea, Bubbles, Lipgloss, AWS SDK v2, atotto/clipboard)
-- k9s navigation model: Training data (HIGH confidence — k9s is extensively documented and widely studied open-source project)
-- AWS tool ecosystem: Training data (MEDIUM confidence — tool landscape changes; awsume/granted/Leapp are well-established as of knowledge cutoff August 2025)
-- S3/ECS API behavior: Training data (HIGH confidence — AWS API behavior is stable and well-documented)
-- Note: Web search and WebFetch tools were unavailable during this session; recommend verifying tool landscape currency before finalizing roadmap
+- Codebase: `internal/ui/model.go`, `internal/ui/status.go`, `internal/ui/overlay/profile.go`,
+  `internal/ui/overlay/region.go` — direct code reading, HIGH confidence
+- k9s skins documentation: https://k9scli.io/topics/skins/ — HIGH confidence
+- k9s custom logo issue: https://github.com/derailed/k9s/issues/2090 — MEDIUM confidence
+- lipgloss JoinHorizontal: https://pkg.go.dev/github.com/charmbracelet/lipgloss — HIGH confidence
+- lipgloss color support (CompleteColor, auto-detection): pkg.go.dev + charmbracelet/mods DeepWiki — HIGH confidence
+- AWS Squid Ink color (#232F3E): https://colorswall.com/color/232f3e — MEDIUM confidence
+- AWS Orange (#FF9900): common knowledge from AWS branding, community dark theme implementations — HIGH confidence
+- btoverlay.Composite: direct code reading of existing duchess `model.go` import — HIGH confidence
+
+---
+
+*Feature research for: duchess v1.1 Visual Polish — Header, Layout, Service Switcher, Theme*
+*Researched: 2026-03-10*
