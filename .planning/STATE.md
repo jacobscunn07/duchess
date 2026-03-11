@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Visual Polish
-status: ready_to_plan
-last_updated: "2026-03-10T00:00:00Z"
+status: unknown
+last_updated: "2026-03-11T13:54:45.160Z"
 progress:
-  total_phases: 6
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_phases: 1
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
 ---
 
 # Project State
@@ -23,11 +23,11 @@ See: .planning/PROJECT.md (updated 2026-03-10)
 ## Current Position
 
 Phase: 6 of 11 (DarkTheme Package)
-Plan: — (not yet planned)
-Status: Ready to plan
-Last activity: 2026-03-10 — Roadmap revised for v1.1 Visual Polish (6 phases, 19 requirements mapped)
+Plan: 1 of 1 complete
+Status: Phase 6 complete — ready for Phase 7
+Last activity: 2026-03-11 — Completed 06-01-PLAN.md (DarkTheme package)
 
-Progress: [░░░░░░░░░░] 0% (v1.1)
+Progress: [█░░░░░░░░░] 17% (v1.1 — Phase 6 of 6 phases complete)
 
 ## Performance Metrics
 
@@ -36,6 +36,10 @@ Progress: [░░░░░░░░░░] 0% (v1.1)
 - v1.0 phases: 5 (plus 4.1 insertion)
 
 *v1.1 metrics will accumulate as plans complete.*
+
+| Phase | Plan | Duration | Tasks | Files |
+|-------|------|----------|-------|-------|
+| 06-darktheme-package | 01 | 2min | 2 | 2 |
 
 ## Accumulated Context
 
@@ -49,6 +53,9 @@ v1.1 starting decisions:
 - Layout before modals: overlay Composite() must target the fully restructured baseView() or header/footer disappear behind modal.
 - Phase 8 (Footer) depends on Phase 6 only — it does not need Phase 7 (Header). Phase 9 (Two-Panel Layout) depends on both Phase 7 and Phase 8 because it needs both height constants (headerHeight and footerHeight) before bodyHeight() math is correct.
 - Phase 10 (Service Switcher) and Phase 11 (Help Overlay) both depend on Phase 9 — they overlay the fully restructured three-zone baseView().
+- [Phase 06-darktheme-package]: All color tokens use lipgloss.CompleteColor (not Color or AdaptiveColor) for consistent degradation across tmux/SSH/16-color terminals
+- [Phase 06-darktheme-package]: Only lipgloss imported in theme.go — no internal/ui/* imports prevents all circular dependency scenarios
+- [Phase 06-darktheme-package]: DefaultTheme package-level var included for downstream caller convenience
 
 ### Pending Todos
 
@@ -62,6 +69,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-10
-Stopped at: Roadmap revised — expanded from 4 phases (6–9) to 6 phases (6–11) per user request for many small phases
+Last session: 2026-03-11
+Stopped at: Completed 06-01-PLAN.md (DarkTheme package — internal/ui/theme/theme.go)
 Resume file: None

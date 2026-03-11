@@ -25,7 +25,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 
 **Milestone Goal:** Transform the UI into a polished, themed AWS TUI — centralized AWS Dark color theme, persistent header with ASCII logo, two-panel layout, and a service switcher modal — without touching business logic.
 
-- [ ] **Phase 6: DarkTheme Package** — Build the centralized theme struct with all AWS Dark color tokens and border styles in an isolated package
+- [x] **Phase 6: DarkTheme Package** — Build the centralized theme struct with all AWS Dark color tokens and border styles in an isolated package (completed 2026-03-11)
 - [ ] **Phase 7: Header** — Implement the persistent ASCII art "duchess" logo header with app metadata (version, profile, region, refresh interval)
 - [ ] **Phase 8: Footer Migration** — Revise the footer — principal ARN on left, clock on right, service indicator removed; migrate to DarkTheme tokens
 - [ ] **Phase 9: Two-Panel Layout** — Restructure rootModel into three vertical zones (header/body/footer) with a two-panel horizontal body; add rounded borders throughout
@@ -117,7 +117,7 @@ Note: Phase 8 depends on Phase 6 only (parallel with Phase 7); Phase 9 depends o
 | 4. ECS Browsing | v1.0 | 2/2 | Complete | 2026-03-05 |
 | 4.1. Wire Configurable Refresh Interval | v1.0 | 2/2 | Complete | 2026-03-06 |
 | 5. Profile and Region Switching | v1.0 | 3/3 | Complete | 2026-03-07 |
-| 6. DarkTheme Package | v1.1 | 0/1 | Not started | - |
+| 6. DarkTheme Package | 1/1 | Complete   | 2026-03-11 | - |
 | 7. Header | v1.1 | 0/? | Not started | - |
 | 8. Footer Migration | v1.1 | 0/? | Not started | - |
 | 9. Two-Panel Layout | v1.1 | 0/? | Not started | - |

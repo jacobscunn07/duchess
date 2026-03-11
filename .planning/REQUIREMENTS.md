@@ -21,9 +21,9 @@ Requirements for v1.1 Visual Polish milestone. All changes are purely presentati
 ### Theme
 
 - [ ] **THEME-01**: All panel borders and modal dialogs use rounded corners
-- [ ] **THEME-02**: App uses AWS Dark color theme (AWS Orange `#FF9900` accent, Squid Ink `#232F3E` background, `#2D2D2D` surfaces)
-- [ ] **THEME-03**: Selected items, active borders, and focus states use AWS Orange as accent color
-- [ ] **THEME-04**: All colors and styles flow from a centralized `DarkTheme` object — no inline hardcoded colors in components
+- [x] **THEME-02**: App uses AWS Dark color theme (AWS Orange `#FF9900` accent, Squid Ink `#232F3E` background, `#2D2D2D` surfaces)
+- [x] **THEME-03**: Selected items, active borders, and focus states use AWS Orange as accent color
+- [x] **THEME-04**: All colors and styles flow from a centralized `DarkTheme` object — no inline hardcoded colors in components
 
 ### Navigation
 
@@ -67,9 +67,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| THEME-02 | Phase 6 | Pending |
-| THEME-03 | Phase 6 | Pending |
-| THEME-04 | Phase 6 | Pending |
+| THEME-02 | Phase 6 | Complete |
+| THEME-03 | Phase 6 | Complete |
+| THEME-04 | Phase 6 | Complete |
 | LAYOUT-01 | Phase 7 | Pending |
 | LAYOUT-02 | Phase 7 | Pending |
 | LAYOUT-03 | Phase 7 | Pending |
