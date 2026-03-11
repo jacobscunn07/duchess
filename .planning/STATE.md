@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Visual Polish
 status: unknown
-last_updated: "2026-03-11T13:54:45.160Z"
+last_updated: "2026-03-11T13:55:55.000Z"
 progress:
   total_phases: 1
   completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  total_plans: 2
+  completed_plans: 2
 ---
 
 # Project State
@@ -23,9 +23,9 @@ See: .planning/PROJECT.md (updated 2026-03-10)
 ## Current Position
 
 Phase: 6 of 11 (DarkTheme Package)
-Plan: 1 of 1 complete
+Plan: 2 of 2 complete
 Status: Phase 6 complete — ready for Phase 7
-Last activity: 2026-03-11 — Completed 06-01-PLAN.md (DarkTheme package)
+Last activity: 2026-03-11 — Completed 06-02-PLAN.md (inline Color migration — THEME-04 closed)
 
 Progress: [█░░░░░░░░░] 17% (v1.1 — Phase 6 of 6 phases complete)
 
@@ -40,6 +40,7 @@ Progress: [█░░░░░░░░░] 17% (v1.1 — Phase 6 of 6 phases com
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 06-darktheme-package | 01 | 2min | 2 | 2 |
+| 06-darktheme-package | 02 | 4min | 2 | 8 |
 
 ## Accumulated Context
 
@@ -56,6 +57,8 @@ v1.1 starting decisions:
 - [Phase 06-darktheme-package]: All color tokens use lipgloss.CompleteColor (not Color or AdaptiveColor) for consistent degradation across tmux/SSH/16-color terminals
 - [Phase 06-darktheme-package]: Only lipgloss imported in theme.go — no internal/ui/* imports prevents all circular dependency scenarios
 - [Phase 06-darktheme-package]: DefaultTheme package-level var included for downstream caller convenience
+- [Phase 06-02]: Color(205)/Color(33)/Color(62) all unified to Accent — hot pink, blue, and purple served identical semantics (selected/focused items), semantic unification is correct
+- [Phase 06-02]: Color migration is complete; all new components must use theme.DefaultTheme.{Field} — lipgloss.Color() directly in components is prohibited
 
 ### Pending Todos
 
@@ -70,5 +73,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-11
-Stopped at: Completed 06-01-PLAN.md (DarkTheme package — internal/ui/theme/theme.go)
+Stopped at: Completed 06-02-PLAN.md (inline Color() migration — THEME-04 closed, Phase 6 complete)
 Resume file: None
