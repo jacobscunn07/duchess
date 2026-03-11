@@ -203,9 +203,9 @@ func (m rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.arn = msg.arn
 		m.awsCfg = msg.cfg
 		m.state = stateReady
-		// Compute content height (excluding status bar) for panel sizing
+		// Compute content height (excluding header and status bar) for panel sizing
 		statusBar := renderStatusBar(m)
-		contentH := m.height - lipgloss.Height(statusBar)
+		contentH := m.height - headerHeight - lipgloss.Height(statusBar)
 		if contentH < 1 {
 			contentH = 1
 		}
@@ -256,7 +256,7 @@ func (m rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.awsCfg.Region = msg.region
 		// Reset ECS panel only — S3 is global (bucket list is not region-specific)
 		statusBar := renderStatusBar(m)
-		contentH := m.height - lipgloss.Height(statusBar)
+		contentH := m.height - headerHeight - lipgloss.Height(statusBar)
 		if contentH < 1 {
 			contentH = 1
 		}
@@ -331,7 +331,7 @@ func (m rootModel) View() string {
 // contentView returns the main content area string based on the current model state.
 func (m rootModel) contentView() string {
 	statusBar := renderStatusBar(m)
-	contentH := m.height - lipgloss.Height(statusBar)
+	contentH := m.height - headerHeight - lipgloss.Height(statusBar)
 	if contentH <= 0 {
 		return m.spinner.View() + " Connecting to AWS..."
 	}
