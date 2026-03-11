@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Visual Polish
 status: unknown
-last_updated: "2026-03-11T18:53:10.473Z"
+last_updated: "2026-03-11T19:49:01Z"
 progress:
   total_phases: 2
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 5
+  completed_plans: 5
 ---
 
 # Project State
@@ -23,9 +23,9 @@ See: .planning/PROJECT.md (updated 2026-03-10)
 ## Current Position
 
 Phase: 7 of 11 (Header Component)
-Plan: 2 of 2 complete
-Status: Phase 7 complete — both plans complete
-Last activity: 2026-03-11 — Completed 07-02-PLAN.md (header integration — wired renderHeader() into model.go, all four contentH sites subtract headerHeight)
+Plan: 3 of 3 complete (automated task; awaiting human visual verification checkpoint)
+Status: Phase 7 gap closure — Task 1 automated complete, Task 2 checkpoint:human-verify pending
+Last activity: 2026-03-11 — Completed 07-03-PLAN.md Task 1 (gap column background fix, metaCol padding background fix, version moved to bottom of metadata column)
 
 Progress: [█░░░░░░░░░] 17% (v1.1 — Phase 6 of 6 phases complete)
 
@@ -43,6 +43,7 @@ Progress: [█░░░░░░░░░] 17% (v1.1 — Phase 6 of 6 phases com
 | 06-darktheme-package | 02 | 4min | 2 | 8 |
 | 07-header | 01 | 3min | 2 | 2 |
 | 07-header | 02 | 5min | 2 | 1 |
+| 07-header | 03 | 2min | 1 | 2 |
 
 ## Accumulated Context
 
@@ -64,6 +65,7 @@ v1.1 starting decisions:
 - [Phase 07-01]: Used lipgloss.JoinHorizontal (not string concatenation) for multi-line column assembly — raw concatenation produces incorrect height when rendered
 - [Phase 07-01]: Removed duplicate stripANSI() from header_test.go — function already declared in status_test.go in same package
 - [Phase 07-02]: Any new zone height constant (footerHeight, navWidth) must be subtracted from contentH at all four sites in model.go (baseView, contentView, identityLoadedMsg, regionSelectedMsg)
+- [Phase 07-03]: Background fill pattern — intermediate columns (gap, metaCol) must have headerStyle applied before JoinHorizontal, not only at the outer wrapper; PlaceVertical result wrapped in headerStyle.Render() to carry Surface background through padding rows
 
 ### Pending Todos
 
@@ -78,5 +80,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-11
-Stopped at: Completed 07-02-PLAN.md (header integration — model.go four contentH sites)
+Stopped at: 07-03-PLAN.md Task 2 checkpoint:human-verify — awaiting visual confirmation of uniform gray header (no black gap, version at bottom-right)
 Resume file: None
