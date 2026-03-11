@@ -23,9 +23,9 @@ See: .planning/PROJECT.md (updated 2026-03-10)
 ## Current Position
 
 Phase: 7 of 11 (Header Component)
-Plan: 1 of 2 complete
-Status: Phase 7 in progress — Plan 01 complete, Plan 02 pending
-Last activity: 2026-03-11 — Completed 07-01-PLAN.md (header component — renderHeader(), headerHeight=6, duchessLogo)
+Plan: 2 of 2 complete
+Status: Phase 7 complete — both plans complete
+Last activity: 2026-03-11 — Completed 07-02-PLAN.md (header integration — wired renderHeader() into model.go, all four contentH sites subtract headerHeight)
 
 Progress: [█░░░░░░░░░] 17% (v1.1 — Phase 6 of 6 phases complete)
 
@@ -42,6 +42,7 @@ Progress: [█░░░░░░░░░] 17% (v1.1 — Phase 6 of 6 phases com
 | 06-darktheme-package | 01 | 2min | 2 | 2 |
 | 06-darktheme-package | 02 | 4min | 2 | 8 |
 | 07-header | 01 | 3min | 2 | 2 |
+| 07-header | 02 | 5min | 2 | 1 |
 
 ## Accumulated Context
 
@@ -62,6 +63,7 @@ v1.1 starting decisions:
 - [Phase 06-02]: Color migration is complete; all new components must use theme.DefaultTheme.{Field} — lipgloss.Color() directly in components is prohibited
 - [Phase 07-01]: Used lipgloss.JoinHorizontal (not string concatenation) for multi-line column assembly — raw concatenation produces incorrect height when rendered
 - [Phase 07-01]: Removed duplicate stripANSI() from header_test.go — function already declared in status_test.go in same package
+- [Phase 07-02]: Any new zone height constant (footerHeight, navWidth) must be subtracted from contentH at all four sites in model.go (baseView, contentView, identityLoadedMsg, regionSelectedMsg)
 
 ### Pending Todos
 
@@ -76,5 +78,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-11
-Stopped at: Completed 07-01-PLAN.md (header component — renderHeader(), headerHeight, duchessLogo)
+Stopped at: Completed 07-02-PLAN.md (header integration — model.go four contentH sites)
 Resume file: None
