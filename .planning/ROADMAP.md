@@ -43,10 +43,11 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
   2. Every color in the AWS Dark palette (Squid Ink background, Surface, Border, AWS Orange accent, TextPrimary, TextSecondary) is defined as a typed field on the theme struct — no hex values anywhere else in the codebase
   3. AWS Orange accent uses `CompleteColor` with explicit TrueColor (`#FF9900`), ANSI256 (`214`), and ANSI (`3`) fallbacks so it renders correctly in tmux and SSH sessions without truecolor
   4. Selected items and active focus states reference the accent color field from the theme struct — not hardcoded inline
-**Plans**: 1 plan
+**Plans**: 2 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — Create Theme struct + DarkTheme() constructor + DefaultTheme var; verify clean build
+- [x] 06-01-PLAN.md — Create Theme struct + DarkTheme() constructor + DefaultTheme var; verify clean build
+- [ ] 06-02-PLAN.md — Gap closure: migrate all inline lipgloss.Color() strings in existing components to theme.DefaultTheme fields (THEME-04)
 
 ### Phase 7: Header
 **Goal**: Users see a persistent ASCII art "duchess" logo header at the top of every screen, alongside app version, AWS profile, region, and refresh interval
@@ -117,7 +118,7 @@ Note: Phase 8 depends on Phase 6 only (parallel with Phase 7); Phase 9 depends o
 | 4. ECS Browsing | v1.0 | 2/2 | Complete | 2026-03-05 |
 | 4.1. Wire Configurable Refresh Interval | v1.0 | 2/2 | Complete | 2026-03-06 |
 | 5. Profile and Region Switching | v1.0 | 3/3 | Complete | 2026-03-07 |
-| 6. DarkTheme Package | 1/1 | Complete   | 2026-03-11 | - |
+| 6. DarkTheme Package | v1.1 | 1/2 | In progress | - |
 | 7. Header | v1.1 | 0/? | Not started | - |
 | 8. Footer Migration | v1.1 | 0/? | Not started | - |
 | 9. Two-Panel Layout | v1.1 | 0/? | Not started | - |
