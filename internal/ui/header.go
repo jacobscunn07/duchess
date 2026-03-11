@@ -67,7 +67,7 @@ func renderHeader(m rootModel, width int) string {
 	// Right column: metadata directly to the right of the logo, vertically centered.
 	metaLines := strings.Join([]string{
 		metaLabelStyle.Render("profile: ") + metaValueStyle.Render(m.cfg.Profile),
-		metaLabelStyle.Render("region: ")  + metaValueStyle.Render(m.cfg.Region),
+		metaLabelStyle.Render("region:  ") + metaValueStyle.Render(m.cfg.Region),
 		metaLabelStyle.Render("refresh: ") + metaValueStyle.Render(fmt.Sprintf("%ds", m.cfg.RefreshInterval)),
 	}, "\n")
 
