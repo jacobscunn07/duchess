@@ -301,13 +301,14 @@ func (m rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // baseView returns the full panel + status bar view without any overlay.
 func (m rootModel) baseView() string {
+	header := renderHeader(m, m.width)
 	statusBar := renderStatusBar(m)
-	contentH := m.height - lipgloss.Height(statusBar)
+	contentH := m.height - headerHeight - lipgloss.Height(statusBar)
 	if contentH < 0 {
 		contentH = 0
 	}
 	content := lipgloss.NewStyle().Width(m.width).Height(contentH).Render(m.contentView())
-	return lipgloss.JoinVertical(lipgloss.Left, content, statusBar)
+	return lipgloss.JoinVertical(lipgloss.Left, header, content, statusBar)
 }
 
 // View implements tea.Model. Returns the current string representation.
