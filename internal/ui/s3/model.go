@@ -15,6 +15,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/dustin/go-humanize"
+
+	"github.com/jacobscunn07/duchess/internal/ui/theme"
 )
 
 // panelState represents the three navigation states of the S3 panel.
@@ -340,7 +342,7 @@ func (m Model) renderBreadcrumb() string {
 
 	style := lipgloss.NewStyle().
 		Width(m.width).
-		Foreground(lipgloss.Color("248")).
+		Foreground(theme.DefaultTheme.TextPrimary).
 		PaddingLeft(1)
 
 	return style.Render(crumb + suffix)

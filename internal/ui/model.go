@@ -18,6 +18,7 @@ import (
 	overlay "github.com/jacobscunn07/duchess/internal/ui/overlay"
 	ecspanel "github.com/jacobscunn07/duchess/internal/ui/ecs"
 	s3panel "github.com/jacobscunn07/duchess/internal/ui/s3"
+	"github.com/jacobscunn07/duchess/internal/ui/theme"
 )
 
 // state represents the loading state of the root model.
@@ -74,7 +75,7 @@ func NewRootModel(ctx context.Context, cfg *config.Config) rootModel {
 
 	s := spinner.New(
 		spinner.WithSpinner(spinner.Dot),
-		spinner.WithStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("205"))),
+		spinner.WithStyle(lipgloss.NewStyle().Foreground(theme.DefaultTheme.Accent)),
 	)
 
 	sessionCtx, cancelSession := context.WithCancel(ctx)

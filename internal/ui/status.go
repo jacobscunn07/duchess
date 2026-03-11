@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+
+	"github.com/jacobscunn07/duchess/internal/ui/theme"
 )
 
 // version is the current application version shown in the status bar.
@@ -12,35 +14,35 @@ const version = "0.1.0"
 
 // Package-level lipgloss styles defined once to avoid recreation on every render.
 var (
-	statusBarStyle = lipgloss.NewStyle().Background(lipgloss.Color("236"))
+	statusBarStyle = lipgloss.NewStyle().Background(theme.DefaultTheme.Surface)
 
 	versionStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("248")).
+			Foreground(theme.DefaultTheme.TextPrimary).
 			Bold(true).
 			Inherit(statusBarStyle)
 
 	profileStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("33")).
+			Foreground(theme.DefaultTheme.Accent).
 			Inherit(statusBarStyle)
 
 	regionStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("33")).
+			Foreground(theme.DefaultTheme.Accent).
 			Inherit(statusBarStyle)
 
 	intervalStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("33")).
+			Foreground(theme.DefaultTheme.Accent).
 			Inherit(statusBarStyle)
 
 	identityStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("248")).
+			Foreground(theme.DefaultTheme.TextPrimary).
 			Inherit(statusBarStyle)
 
 	clockStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("248")).
+			Foreground(theme.DefaultTheme.TextPrimary).
 			Inherit(statusBarStyle)
 
 	separatorStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("240")).
+			Foreground(theme.DefaultTheme.Muted).
 			Inherit(statusBarStyle)
 )
 

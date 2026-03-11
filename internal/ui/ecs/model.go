@@ -15,6 +15,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/dustin/go-humanize"
+
+	"github.com/jacobscunn07/duchess/internal/ui/theme"
 )
 
 // panelState represents the four navigation states of the ECS panel.
@@ -375,11 +377,11 @@ func (m Model) renderBreadcrumb() string {
 
 	style := lipgloss.NewStyle().
 		Width(m.width).
-		Foreground(lipgloss.Color("248")).
+		Foreground(theme.DefaultTheme.TextPrimary).
 		PaddingLeft(1)
 
 	if taskDefLabel != "" {
-		taskDefStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+		taskDefStyle := lipgloss.NewStyle().Foreground(theme.DefaultTheme.Muted)
 		return style.Render(crumb + taskDefStyle.Render(taskDefLabel) + suffix)
 	}
 
@@ -442,7 +444,7 @@ func (m Model) renderTaskDetail() string {
 			cursor := "  "
 			if i == m.containerCursor {
 				cursor = "> "
-				highlightStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+				highlightStyle := lipgloss.NewStyle().Foreground(theme.DefaultTheme.Accent)
 				lines = append(lines, cursor+highlightStyle.Render(row))
 			} else {
 				lines = append(lines, cursor+row)

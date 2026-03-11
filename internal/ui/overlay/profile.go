@@ -12,6 +12,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	ini "gopkg.in/ini.v1"
+
+	"github.com/jacobscunn07/duchess/internal/ui/theme"
 )
 
 // ListAWSProfiles reads ~/.aws/config and returns a sorted slice of profile names.
@@ -70,7 +72,7 @@ func (d profileDelegate) Render(w io.Writer, m list.Model, index int, item list.
 		return
 	}
 	if index == m.Index() {
-		style := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("33"))
+		style := lipgloss.NewStyle().Bold(true).Foreground(theme.DefaultTheme.Accent)
 		fmt.Fprint(w, style.Render(pi.name))
 	} else {
 		fmt.Fprint(w, pi.name)
@@ -118,7 +120,7 @@ func NewProfileOverlay(currentProfile string, termWidth, termHeight int, profile
 
 	borderStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("62")).
+		BorderForeground(theme.DefaultTheme.Accent).
 		Width(overlayW - 2).
 		Padding(0, 1)
 
@@ -146,7 +148,7 @@ func (m ProfileOverlay) Update(msg tea.Msg) (ProfileOverlay, tea.Cmd) {
 func (m ProfileOverlay) View() string {
 	title := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color("248")).
+		Foreground(theme.DefaultTheme.TextPrimary).
 		Render("Switch Profile")
 	content := lipgloss.JoinVertical(lipgloss.Left, title, m.list.View())
 	return m.borderStyle.Render(content)

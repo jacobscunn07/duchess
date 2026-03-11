@@ -7,6 +7,8 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+
+	"github.com/jacobscunn07/duchess/internal/ui/theme"
 )
 
 // awsRegions is the hardcoded list of standard AWS commercial regions.
@@ -46,7 +48,7 @@ func (d regionDelegate) Render(w io.Writer, m list.Model, index int, item list.I
 		return
 	}
 	if index == m.Index() {
-		style := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("62"))
+		style := lipgloss.NewStyle().Bold(true).Foreground(theme.DefaultTheme.Accent)
 		fmt.Fprint(w, style.Render(ri.name))
 	} else {
 		fmt.Fprint(w, ri.name)
@@ -92,7 +94,7 @@ func NewRegionOverlay(currentRegion string, termWidth, termHeight int) RegionOve
 
 	borderStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("62")).
+		BorderForeground(theme.DefaultTheme.Accent).
 		Width(overlayW - 2).
 		Padding(0, 1)
 
@@ -120,7 +122,7 @@ func (m RegionOverlay) Update(msg tea.Msg) (RegionOverlay, tea.Cmd) {
 func (m RegionOverlay) View() string {
 	title := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color("248")).
+		Foreground(theme.DefaultTheme.TextPrimary).
 		Render("Switch Region")
 	content := lipgloss.JoinVertical(lipgloss.Left, title, m.list.View())
 	return m.borderStyle.Render(content)
