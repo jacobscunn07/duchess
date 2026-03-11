@@ -55,38 +55,29 @@ func renderHeader(m rootModel, width int) string {
 	// Left column: ASCII logo followed by a centered version string on the next line.
 	logoStr := logoStyle.Render(duchessLogo)
 	logoW := lipgloss.Width(logoStr)
-	versionStr := metaValueStyle.Render("v" + version)
-	// Center the version string within the logo column width.
-	logoCol := lipgloss.JoinVertical(lipgloss.Left,
-		logoStr,
-		lipgloss.PlaceHorizontal(logoW, lipgloss.Center, versionStr),
-	)
+	// Version line: centered within logo width with full Surface background.
+	versionLine := headerStyle.Width(logoW).Align(lipgloss.Center).Render("v" + version)
+	logoCol := lipgloss.JoinVertical(lipgloss.Left, logoStr, versionLine)
 
-	// Right column: metadata stacked vertically — one item per line.
-	// Labels in Muted, values in Accent. Version is in the logo column, not here.
+	// Right column: metadata directly to the right of the logo, vertically centered.
 	metaLines := strings.Join([]string{
 		metaLabelStyle.Render("profile: ") + metaValueStyle.Render(m.cfg.Profile),
 		metaLabelStyle.Render("region: ")  + metaValueStyle.Render(m.cfg.Region),
 		metaLabelStyle.Render("refresh: ") + metaValueStyle.Render(fmt.Sprintf("%ds", m.cfg.RefreshInterval)),
 	}, "\n")
 
-	// Bottom-align the metadata column within headerHeight rows.
-	// This visually anchors the metadata to the bottom rows of the logo.
-	metaColRaw := lipgloss.PlaceVertical(headerHeight, lipgloss.Bottom, metaLines)
+	// Vertically center metadata within the full header height.
+	metaColRaw := lipgloss.PlaceVertical(headerHeight, lipgloss.Center, metaLines)
 	metaCol    := headerStyle.Render(metaColRaw)
 	metaW      := lipgloss.Width(metaCol)
 
-	// Build a gap column to push metadata to the right edge.
-	gapW := width - logoW - metaW
-	if gapW < 0 {
-		gapW = 0
+	// Fill remaining width to the right with Surface background.
+	rightW := width - logoW - metaW
+	if rightW < 0 {
+		rightW = 0
 	}
-	// A gap column of the right height ensures JoinHorizontal aligns correctly.
-	gapLines := strings.Repeat("\n", headerHeight-1)
-	gapCol := headerStyle.Width(gapW).Render(gapLines)
+	rightFill := headerStyle.Width(rightW).Render(strings.Repeat("\n", headerHeight-1))
 
-	// Use JoinHorizontal so multi-line columns are stitched side-by-side correctly.
-	// This avoids raw string concatenation which causes incorrect height measurement.
-	row := lipgloss.JoinHorizontal(lipgloss.Top, logoCol, gapCol, metaCol)
+	row := lipgloss.JoinHorizontal(lipgloss.Top, logoCol, metaCol, rightFill)
 	return headerStyle.Width(width).Render(row)
 }
