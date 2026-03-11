@@ -19,10 +19,12 @@ const duchessLogo = "     _            _\n" +
 	"| (_| | |_| | (__| | | |  __/\\__ \\__ \\\n" +
 	" \\__,_|\\__,_|\\___|_| |_|\\___||___/___/"
 
+// logoHeight is the number of rows the ASCII logo occupies.
+var logoHeight = strings.Count(duchessLogo, "\n") + 1
+
 // headerHeight is the number of terminal rows the header occupies.
-// Derived from the actual duchessLogo line count so layout math stays in sync
-// if the logo ever changes. Never a bare integer.
-var headerHeight = strings.Count(duchessLogo, "\n") + 1
+// One extra row below the logo is reserved for the centered version string.
+var headerHeight = logoHeight + 1
 
 // Package-level lipgloss styles defined once to avoid recreation on every render.
 // All colors use theme.DefaultTheme fields — no inline lipgloss.Color() calls.
@@ -50,18 +52,22 @@ func renderHeader(m rootModel, width int) string {
 		return ""
 	}
 
-	// Left column: ASCII logo styled with Accent foreground on Surface background.
+	// Left column: ASCII logo followed by a centered version string on the next line.
 	logoStr := logoStyle.Render(duchessLogo)
 	logoW := lipgloss.Width(logoStr)
+	versionStr := metaValueStyle.Render("v" + version)
+	// Center the version string within the logo column width.
+	logoCol := lipgloss.JoinVertical(lipgloss.Left,
+		logoStr,
+		lipgloss.PlaceHorizontal(logoW, lipgloss.Center, versionStr),
+	)
 
 	// Right column: metadata stacked vertically — one item per line.
-	// Order: version (no label), profile, region, refresh interval.
-	// Labels in Muted, values in Accent.
+	// Labels in Muted, values in Accent. Version is in the logo column, not here.
 	metaLines := strings.Join([]string{
 		metaLabelStyle.Render("profile: ") + metaValueStyle.Render(m.cfg.Profile),
 		metaLabelStyle.Render("region: ")  + metaValueStyle.Render(m.cfg.Region),
 		metaLabelStyle.Render("refresh: ") + metaValueStyle.Render(fmt.Sprintf("%ds", m.cfg.RefreshInterval)),
-		metaValueStyle.Render("v" + version),
 	}, "\n")
 
 	// Bottom-align the metadata column within headerHeight rows.
@@ -81,6 +87,6 @@ func renderHeader(m rootModel, width int) string {
 
 	// Use JoinHorizontal so multi-line columns are stitched side-by-side correctly.
 	// This avoids raw string concatenation which causes incorrect height measurement.
-	row := lipgloss.JoinHorizontal(lipgloss.Top, logoStr, gapCol, metaCol)
+	row := lipgloss.JoinHorizontal(lipgloss.Top, logoCol, gapCol, metaCol)
 	return headerStyle.Width(width).Render(row)
 }

@@ -10,12 +10,19 @@ import (
 )
 
 func TestHeaderHeight(t *testing.T) {
-	want := strings.Count(duchessLogo, "\n") + 1
-	if headerHeight != want {
-		t.Errorf("headerHeight = %d, want %d (derived from duchessLogo line count)", headerHeight, want)
+	wantLogoHeight := strings.Count(duchessLogo, "\n") + 1
+	if logoHeight != wantLogoHeight {
+		t.Errorf("logoHeight = %d, want %d (derived from duchessLogo line count)", logoHeight, wantLogoHeight)
 	}
-	if headerHeight != 6 {
-		t.Errorf("headerHeight = %d, want 6 (expected logo line count)", headerHeight)
+	if logoHeight != 6 {
+		t.Errorf("logoHeight = %d, want 6 (expected logo line count)", logoHeight)
+	}
+	// headerHeight = logoHeight + 1 (extra row for centered version below logo)
+	if headerHeight != logoHeight+1 {
+		t.Errorf("headerHeight = %d, want logoHeight+1 = %d", headerHeight, logoHeight+1)
+	}
+	if headerHeight != 7 {
+		t.Errorf("headerHeight = %d, want 7 (6 logo rows + 1 version row)", headerHeight)
 	}
 }
 
