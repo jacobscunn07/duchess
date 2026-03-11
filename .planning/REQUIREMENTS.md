@@ -67,31 +67,31 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| THEME-01 | — | Pending |
-| THEME-02 | — | Pending |
-| THEME-03 | — | Pending |
-| THEME-04 | — | Pending |
-| LAYOUT-01 | — | Pending |
-| LAYOUT-02 | — | Pending |
-| LAYOUT-03 | — | Pending |
-| LAYOUT-06 | — | Pending |
-| LAYOUT-07 | — | Pending |
-| LAYOUT-08 | — | Pending |
-| LAYOUT-04 | — | Pending |
-| LAYOUT-05 | — | Pending |
-| NAV-01 | — | Pending |
-| NAV-02 | — | Pending |
-| NAV-03 | — | Pending |
-| NAV-04 | — | Pending |
-| HELP-01 | — | Pending |
-| HELP-02 | — | Pending |
-| HELP-03 | — | Pending |
+| THEME-02 | Phase 6 | Pending |
+| THEME-03 | Phase 6 | Pending |
+| THEME-04 | Phase 6 | Pending |
+| LAYOUT-01 | Phase 7 | Pending |
+| LAYOUT-02 | Phase 7 | Pending |
+| LAYOUT-03 | Phase 7 | Pending |
+| LAYOUT-06 | Phase 8 | Pending |
+| LAYOUT-07 | Phase 8 | Pending |
+| LAYOUT-08 | Phase 8 | Pending |
+| LAYOUT-04 | Phase 9 | Pending |
+| LAYOUT-05 | Phase 9 | Pending |
+| NAV-01 | Phase 9 | Pending |
+| THEME-01 | Phase 9 | Pending |
+| NAV-02 | Phase 10 | Pending |
+| NAV-03 | Phase 10 | Pending |
+| NAV-04 | Phase 10 | Pending |
+| HELP-01 | Phase 11 | Pending |
+| HELP-02 | Phase 11 | Pending |
+| HELP-03 | Phase 11 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 19 total
-- Mapped to phases: 0
-- Unmapped: 19 ⚠️
+- Mapped to phases: 19
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-10*
-*Last updated: 2026-03-10 after initial definition*
+*Last updated: 2026-03-10 — traceability updated after roadmap revision (6 phases: 6–11)*
