@@ -11,6 +11,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/dustin/go-humanize"
+
+	"github.com/jacobscunn07/duchess/internal/ui/theme"
 )
 
 // itemKind distinguishes the three kinds of S3 items displayed in the list.
@@ -69,8 +71,8 @@ type s3Delegate struct {
 
 var (
 	normalStyle   = lipgloss.NewStyle().PaddingLeft(2)
-	selectedStyle = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("205")).Bold(true)
-	prefixStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("33"))
+	selectedStyle = lipgloss.NewStyle().PaddingLeft(1).Foreground(theme.DefaultTheme.Accent).Bold(true)
+	prefixStyle   = lipgloss.NewStyle().Foreground(theme.DefaultTheme.Accent)
 )
 
 func (d s3Delegate) Height() int                             { return 1 }

@@ -11,6 +11,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/dustin/go-humanize"
+
+	"github.com/jacobscunn07/duchess/internal/ui/theme"
 )
 
 // ecsItemKind distinguishes the three kinds of ECS items in the list.
@@ -45,7 +47,7 @@ type ecsDelegate struct {
 
 var (
 	normalStyle   = lipgloss.NewStyle().PaddingLeft(2)
-	selectedStyle = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("205")).Bold(true)
+	selectedStyle = lipgloss.NewStyle().PaddingLeft(1).Foreground(theme.DefaultTheme.Accent).Bold(true)
 )
 
 func (d ecsDelegate) Height() int                               { return 1 }
