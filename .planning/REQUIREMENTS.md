@@ -9,9 +9,9 @@ Requirements for v1.1 Visual Polish milestone. All changes are purely presentati
 
 ### Layout
 
-- [ ] **LAYOUT-01**: App displays a persistent header at the top of every screen
-- [ ] **LAYOUT-02**: Header shows ASCII art "duchess" logo on the left
-- [ ] **LAYOUT-03**: Header shows app version, AWS profile, region, and refresh interval to the right of the logo
+- [x] **LAYOUT-01**: App displays a persistent header at the top of every screen
+- [x] **LAYOUT-02**: Header shows ASCII art "duchess" logo on the left
+- [x] **LAYOUT-03**: Header shows app version, AWS profile, region, and refresh interval to the right of the logo
 - [ ] **LAYOUT-04**: Main content area is split into a left navigation panel and a right content panel
 - [ ] **LAYOUT-05**: Right content panel displays the active service name as a section header (e.g., "Amazon S3", "Amazon ECS")
 - [ ] **LAYOUT-06**: Footer shows the current IAM principal ARN on the left
@@ -70,9 +70,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | THEME-02 | Phase 6 | Complete |
 | THEME-03 | Phase 6 | Complete |
 | THEME-04 | Phase 6 | Complete |
-| LAYOUT-01 | Phase 7 | Pending |
-| LAYOUT-02 | Phase 7 | Pending |
-| LAYOUT-03 | Phase 7 | Pending |
+| LAYOUT-01 | Phase 7 | Complete |
+| LAYOUT-02 | Phase 7 | Complete |
+| LAYOUT-03 | Phase 7 | Complete |
 | LAYOUT-06 | Phase 8 | Pending |
 | LAYOUT-07 | Phase 8 | Pending |
 | LAYOUT-08 | Phase 8 | Pending |
